@@ -68,3 +68,23 @@ background один раз пробует программно загрузит�
 permission `scripting` фактически используется для вкладок, открытых до установки/update.
 Проверка transform выполняется до APPLIED; несовпадение немедленно отменяет owned Animation.
 Подробности и границы — [evidence](evidence/S01-2026-09-12.md).
+
+## S02 · 2026-09-13
+
+Discovery владеет очередями, IO, MutationObserver и timers. Порции 4 ms уступают event loop
+через setTimeout; deadline 3000 ms проверяется также внутри очереди и геометрии. Это
+cooperative budget, а не гарантия прерывания одного синхронного browser API. Лимиты:
+25 000 посещений (включая два host-pass), 256 roots (включая Document), 32 video.
+Added-subtree работа поступает через NodeList-итераторы, без rescan на каждую мутацию.
+
+Content возвращает snapshot; background выбирает победителя. Fullscreen tier выше площади;
+playback bonus 1.25, ambiguity ratio <1.15. `complete` и `closedRoots` разделены: отсутствие
+native accessor оставляет open-root support с coverage-warning. Budget failure запрещает apply.
+
+Для T36–T37 добавлен observer только цепочки предков выбранного video, без subtree/polling.
+TARGET_LOST сначала снимает локальный эффект; background проверяет sender tab/frame и
+operation/document/target/media identity. Media/history/worker recovery остаются в S04.
+
+Native video fullscreen в Chromium возвращает TRANSFORM_CONFLICT, fullscreen контейнера
+проходит. Backend не заменялся в discovery-слайсе; TD03 оставлен для S05. Native-root gates
+Chrome 153 и Firefox 155 пройдены; Firefox harness использует production extension messaging.

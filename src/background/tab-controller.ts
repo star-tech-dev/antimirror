@@ -1,4 +1,5 @@
 import { browser } from 'wxt/browser';
+import { rankCandidates } from '../content/candidates';
 import { presentState } from './action-presenter';
 import { SessionStore } from './session-store';
 import { PROTOCOL_VERSION, isContentResponse, type ContentRequest, type ContentResponse, type OffReason, type TargetRef } from '../shared/protocol';
@@ -29,6 +30,14 @@ export class TabController {
 
   async resetForNavigation(tabId: number): Promise<void> {
     if (this.getState(tabId).phase !== 'off') await this.disable(tabId, 'NAVIGATION');
+  }
+
+  async targetLost(tabId: number, operationId: string, target: TargetRef): Promise<void> {
+    const state = this.getState(tabId);
+    if (state.phase === 'off' || state.operationId !== operationId || !('target' in state) || !state.target ||
+        state.target.documentNonce !== target.documentNonce || state.target.targetId !== target.targetId ||
+        state.target.mediaToken !== target.mediaToken || state.target.frameId !== target.frameId) return;
+    await this.disable(tabId, 'TARGET_LOST');
   }
 
   async remove(tabId: number): Promise<void> {
@@ -65,11 +74,11 @@ export class TabController {
     }
     if (!discovered || discovered.type !== 'CANDIDATES' || discovered.operationId !== operationId ||
         discovered.documentNonce !== probe.documentNonce) return this.fail(tabId, 'AGENT_UNAVAILABLE', operationId);
-    if (discovered.candidates.length !== 1) {
-      return this.fail(tabId, discovered.candidates.length === 0 ? 'NO_VIDEO' : 'AMBIGUOUS_TARGET', operationId);
+    if (!discovered.complete) return this.fail(tabId, 'INCOMPLETE_COVERAGE', operationId);
+    const candidate = rankCandidates(discovered.candidates);
+    if (!candidate || candidate === 'AMBIGUOUS_TARGET') {
+      return this.fail(tabId, candidate ?? (discovered.closedRoots ? 'NO_VIDEO' : 'INCOMPLETE_COVERAGE'), operationId);
     }
-
-    const candidate = discovered.candidates[0]!;
     const target: TargetRef = { frameId: 0, documentNonce: probe.documentNonce,
       targetId: candidate.targetId, mediaToken: candidate.mediaToken };
     const applied = await this.send(tabId, { protocolVersion: PROTOCOL_VERSION, type: 'PREPARE_APPLY',
@@ -83,7 +92,7 @@ export class TabController {
       return this.fail(tabId, reason, operationId, target);
     }
 
-    state = startApply(this.getState(tabId), operationId, target);
+    state = startApply(this.getState(tabId), operationId, target, discovered.closedRoots ? undefined : 'OPEN_ROOTS_ONLY');
     await this.commitState(state);
     const committed = await this.send(tabId, { protocolVersion: PROTOCOL_VERSION, type: 'COMMIT',
       requestId: requestId(), operationId, ...target });

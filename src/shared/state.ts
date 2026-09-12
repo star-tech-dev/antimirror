@@ -5,6 +5,7 @@ export interface Identity {
   operationId: string;
   revision: number;
   topDocumentNonce: string;
+  coverageWarning?: 'OPEN_ROOTS_ONLY';
 }
 
 export type TabState =
@@ -22,9 +23,9 @@ export function startEnable(state: TabState, operationId: string, topDocumentNon
   return { phase: 'searching', tabId: state.tabId, revision: state.revision + 1, operationId, topDocumentNonce };
 }
 
-export function startApply(state: TabState, operationId: string, target: TargetRef): TabState {
+export function startApply(state: TabState, operationId: string, target: TargetRef, coverageWarning?: 'OPEN_ROOTS_ONLY'): TabState {
   if (state.phase !== 'searching' || state.operationId !== operationId) return state;
-  return { ...state, phase: 'applying', revision: state.revision + 1, target };
+  return { ...state, phase: 'applying', revision: state.revision + 1, target, ...(coverageWarning ? { coverageWarning } : {}) };
 }
 
 export function confirmOn(state: TabState, operationId: string, target: TargetRef): TabState {
@@ -43,6 +44,7 @@ export function isCurrentOperation(state: TabState, operationId: string): boolea
 export function isTabState(value: unknown): value is TabState {
   if (typeof value !== 'object' || value === null) return false;
   const state = value as Record<string, unknown>;
+  if (state.coverageWarning !== undefined && state.coverageWarning !== 'OPEN_ROOTS_ONLY') return false;
   if (!Number.isSafeInteger(state.tabId) || !Number.isSafeInteger(state.revision) ||
       (state.revision as number) < 0) return false;
   if (state.phase === 'off') return typeof state.reason === 'string';

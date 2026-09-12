@@ -14,8 +14,12 @@ describe('protocol runtime guards', () => {
       frameId: 0, documentNonce: 'd', targetId: 't', mediaToken: 'm' };
     expect(isContentRequest(addressed)).toBe(true);
     expect(isContentRequest({ ...addressed, frameId: 8 })).toBe(false);
-    expect(isContentResponse({ protocolVersion: 1, type: 'CANDIDATES', requestId: 'r', operationId: 'o',
-      documentNonce: 'd', candidates: [{ targetId: '1', mediaToken: '1' }, { targetId: '2', mediaToken: '2' },
-        { targetId: '3', mediaToken: '3' }] })).toBe(false);
+    const snapshot = { targetId: 't', mediaToken: 'm', visibleArea: 1000, playing: false, fullscreen: false };
+    const response = { protocolVersion: 1, type: 'CANDIDATES', requestId: 'r', operationId: 'o',
+      documentNonce: 'd', complete: true, closedRoots: true, candidates: [snapshot] };
+    expect(isContentResponse(response)).toBe(true);
+    expect(isContentResponse({ ...response, candidates: Array.from({ length: 33 }, () => snapshot) })).toBe(false);
+    expect(isContentResponse({ ...response, candidates: [{ ...snapshot, visibleArea: NaN }] })).toBe(false);
+    expect(isContentResponse({ ...response, candidates: [{ ...snapshot, playing: 'yes' }] })).toBe(false);
   });
 });

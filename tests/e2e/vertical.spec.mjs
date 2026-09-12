@@ -121,7 +121,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await ambiguous.goto(`${baseURL}/?case=multiple`);
     popup = await openPopup(ambiguous);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Найдено несколько видео');
+    await expect.poll(() => popup.text('#status')).toBe('Найдено несколько видео. Разверните нужное в fullscreen и повторите');
     expect(await ambiguous.locator('video').evaluateAll(videos => videos.map(video => video.getAnimations().length))).toEqual([0, 0]);
     await popup.close();
 

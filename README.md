@@ -1,7 +1,7 @@
 # АнтиЗеркало / AntiMirror — пакет для реализации в Codex
 
 **Редакция:** 2026-09-11 · **Объём продукта:** desktop v1, только ручное включение.
-**Статус:** S00–S01 завершены; работает ручной popup-сценарий для одного обычного top-level video.
+**Статус:** S00–S02 завершены; работает ручной выбор одного video, включая author shadow roots.
 
 Расширение горизонтально отражает один выбранный основной HTMLVideoElement в текущей
 вкладке. Не скачивает и не анализирует видеопоток, не вмешивается в права доступа к контенту.
@@ -25,8 +25,9 @@ pnpm verify:manifests
 ```
 
 Сборки находятся в `.output/chrome-mv3` и `.output/firefox-mv3`. Popup включает и выключает
-ровно один подходящий обычный video в top-document. Deep shadow discovery и iframe coordination
-появятся в S02–S03; при нескольких video текущий срез остаётся OFF с объяснением.
+ровно один подходящий video в top-document, включая open/closed/nested shadow roots.
+Выбор учитывает fullscreen и видимую площадь; практически равные кандидаты оставляют OFF
+с объяснением. Iframe coordination появится в S03.
 
 ## Браузерные проверки
 
@@ -42,10 +43,11 @@ Playwright сам запускает стенд. Если порты занят�
 FIXTURE_PORT=4273 FIXTURE_FRAME_PORT=4274 pnpm test:e2e:chromium
 ```
 
-Для следующих двух команд сначала запустить `pnpm fixtures` в отдельном терминале:
+Для следующих команд сначала запустить `pnpm fixtures` в отдельном терминале:
 
 ```sh
 pnpm test:e2e:firefox
+pnpm test:discovery:firefox
 pnpm test:worker-idle
 ```
 
@@ -56,12 +58,19 @@ Firefox harness использует установленный `/Applications/F
 этот флаг не нужен пользователям расширения. `FIXTURE_PORT` должен совпадать
 с запущенным стендом. Idle-проба ждёт 40 секунд без debugger attachment к worker.
 
-`test:e2e:chromium` проверяет production popup-сценарий. `test:e2e:feasibility` повторяет
+`test:e2e:chromium` проверяет production popup и S02 discovery. `test:discovery:firefox`
+проверяет production content через native extension messaging, сохраняя целевую вкладку
+видимой для IntersectionObserver. Это не полный action-popup E2E Firefox.
+`test:e2e:feasibility` повторяет
 низкоуровневые S00 gates. Тестовая сборка `.output-spike` содержит служебные команды и
 **не предназначена для распространения**.
 Снимки синтетического видео пишутся в gitignored `test-results`. Результаты и ограничения:
 [S00](docs/antimirror/evidence/S00-2026-09-12.md),
-[S01](docs/antimirror/evidence/S01-2026-09-12.md).
+[S01](docs/antimirror/evidence/S01-2026-09-12.md),
+[S02](docs/antimirror/evidence/S02-2026-09-13.md).
+
+Native fullscreen самого video в Chromium сейчас возвращает конфликт стилей; fullscreen
+контейнера проверен. Совместимость этого режима остаётся задачей S05 (TD03).
 
 Для продолжения использовать [CONTINUE_CODEX.md](CONTINUE_CODEX.md), для независимого review —
 [REVIEW_CODEX.md](REVIEW_CODEX.md). Текущий следующий шаг указан в progress/handoff.

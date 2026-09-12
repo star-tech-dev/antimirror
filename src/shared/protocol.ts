@@ -4,6 +4,8 @@ export type OffReason =
   | 'INITIAL'
   | 'USER'
   | 'NO_VIDEO'
+  | 'INCOMPLETE_COVERAGE'
+  | 'TARGET_LOST'
   | 'AMBIGUOUS_TARGET'
   | 'NAVIGATION'
   | 'AGENT_UNAVAILABLE'
@@ -34,9 +36,23 @@ export interface CandidateRef {
   mediaToken: string;
 }
 
+export interface CandidateSnapshot extends CandidateRef {
+  visibleArea: number;
+  playing: boolean;
+  fullscreen: boolean;
+}
+
+export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string } & TargetRef;
+
+export function isTargetLost(value: unknown): value is TargetLost {
+  return isRecord(value) && value.protocolVersion === 1 && value.type === 'TARGET_LOST' &&
+    value.frameId === 0 && isId(value.operationId) && isId(value.documentNonce) &&
+    isId(value.targetId) && isId(value.mediaToken);
+}
+
 export type ContentResponse =
   | { protocolVersion: 1; type: 'PROBED'; requestId: string; documentNonce: string }
-  | { protocolVersion: 1; type: 'CANDIDATES'; requestId: string; operationId: string; documentNonce: string; candidates: CandidateRef[] }
+  | { protocolVersion: 1; type: 'CANDIDATES'; requestId: string; operationId: string; documentNonce: string; complete: boolean; closedRoots: boolean; candidates: CandidateSnapshot[] }
   | ({ protocolVersion: 1; type: 'APPLIED' | 'COMMITTED' | 'DISABLED'; requestId: string; operationId: string } & CandidateRef & { documentNonce: string })
   | { protocolVersion: 1; type: 'CANCELLED'; requestId: string; operationId: string; documentNonce: string }
   | { protocolVersion: 1; type: 'ERROR'; requestId: string; code: OffReason | 'STALE_OPERATION' | 'STALE_DOCUMENT' | 'STALE_TARGET' };
@@ -75,8 +91,11 @@ export function isContentResponse(value: unknown): value is ContentResponse {
   if (value.type === 'CANCELLED') return isId(value.operationId) && isId(value.documentNonce);
   if (value.type === 'CANDIDATES') {
     return isId(value.operationId) && isId(value.documentNonce) && Array.isArray(value.candidates) &&
-      value.candidates.length <= 2 && value.candidates.every(candidate =>
-        isRecord(candidate) && isId(candidate.targetId) && isId(candidate.mediaToken));
+      typeof value.complete === 'boolean' && typeof value.closedRoots === 'boolean' &&
+      value.candidates.length <= 32 && value.candidates.every(candidate =>
+        isRecord(candidate) && isId(candidate.targetId) && isId(candidate.mediaToken) &&
+        typeof candidate.visibleArea === 'number' && Number.isFinite(candidate.visibleArea) && candidate.visibleArea > 0 &&
+        typeof candidate.playing === 'boolean' && typeof candidate.fullscreen === 'boolean');
   }
   return ['APPLIED', 'COMMITTED', 'DISABLED'].includes(value.type) && isId(value.operationId) &&
     isId(value.documentNonce) && isId(value.targetId) && isId(value.mediaToken);

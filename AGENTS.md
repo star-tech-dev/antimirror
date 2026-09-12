@@ -54,8 +54,9 @@
 Node 24.13.0 (`.node-version`), pnpm 10.29.2. Установка: `pnpm install --frozen-lockfile`.
 Проверки: `pnpm typecheck`, `pnpm lint`, `pnpm test:unit`, обе `pnpm build:chrome` /
 `pnpm build:firefox`, затем `pnpm verify:manifests`.
-`pnpm test:e2e:chromium` проверяет production popup, `pnpm test:e2e:feasibility` — S00;
+`pnpm test:e2e:chromium` проверяет production popup и S02 discovery, `pnpm test:e2e:feasibility` — S00;
 обе команды запускают собственный стенд. `pnpm test:e2e:firefox` и
-`pnpm test:worker-idle` требуют запущенного `pnpm fixtures`. Порты согласовать через env.
+`pnpm test:worker-idle` и `pnpm test:discovery:firefox` требуют запущенного `pnpm fixtures`.
+Последняя команда проверяет production Firefox content и native roots. Порты согласовать через env.
 `.output-spike` — только feasibility, не распространять её как обычное расширение.
 Не подключать worker debugger при проверке естественного MV3 idle.

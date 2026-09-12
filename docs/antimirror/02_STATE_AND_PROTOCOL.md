@@ -42,6 +42,7 @@ Background получает tabId/frameId/documentId из `runtime.MessageSender
 | BG → frame | `PROBE` | Получить nonce/capabilities, без поиска и включения |
 | BG → frame | `DISCOVER` | Найти кандидатов в бюджете текущей операции |
 | frame → BG | `CANDIDATES` | Ограниченный массив метаданных и coverage, без URL/HTML |
+| frame → BG | `TARGET_LOST` | S02: удаление video/host, полный TargetRef + operationId; не включает режим |
 | BG → target | `PREPARE_APPLY` | Проверить текущую цель и поставить временный эффект с deadline |
 | target → BG | `APPLIED` | Эффект установлен на конкретном video, не просто флаг записан |
 | BG → target | `COMMIT` | Подтвердить ту же операцию после записи переходного состояния |

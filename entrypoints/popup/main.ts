@@ -15,7 +15,8 @@ const tabId = active?.id;
 
 const messages: Record<string, string> = {
   INITIAL: 'Выключено', USER: 'Выключено', NO_VIDEO: 'Подходящее видео не найдено',
-  AMBIGUOUS_TARGET: 'Найдено несколько видео', NAVIGATION: 'Выключено после загрузки страницы',
+  AMBIGUOUS_TARGET: 'Найдено несколько видео. Разверните нужное в fullscreen и повторите', NAVIGATION: 'Выключено после загрузки страницы',
+  INCOMPLETE_COVERAGE: 'Не удалось полностью проверить страницу', TARGET_LOST: 'Выключено: видео удалено',
   AGENT_UNAVAILABLE: 'Страница недоступна. Обновите её и попробуйте снова',
   APPLY_FAILED: 'Не удалось применить отражение', TRANSFORM_CONFLICT: 'Стили страницы мешают отражению',
 };
@@ -26,6 +27,7 @@ function render(next?: TabState): void {
   const busy = next.phase === 'searching' || next.phase === 'applying' || next.phase === 'disabling';
   status.textContent = next.phase === 'on' ? 'Видео отражено' : next.phase === 'off'
     ? messages[next.reason] ?? 'Выключено' : next.phase === 'searching' ? 'Поиск видео…' : 'Применение…';
+  if (next.phase === 'on' && next.coverageWarning) status.textContent += '. Поиск внутри закрытых компонентов недоступен';
   button.textContent = next.phase === 'on' ? 'Выключить' : busy ? 'Отменить' : 'Включить';
   button.disabled = tabId === undefined;
   button.setAttribute('aria-pressed', String(next.phase === 'on'));

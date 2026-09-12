@@ -15,7 +15,7 @@
     "typecheck": "wxt prepare && tsc --noEmit",
     "lint": "eslint .",
     "test:unit": "vitest run",
-    "test:e2e:chromium": "pnpm build:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/vertical.spec.mjs",
+    "test:e2e:chromium": "pnpm build:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/vertical.spec.mjs tests/e2e/discovery.spec.mjs",
     "test:e2e:feasibility": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/foundation.spec.mjs",
     "build:chrome": "wxt build -b chrome --mv3",
     "build:firefox": "wxt build -b firefox --mv3",
@@ -24,6 +24,7 @@
     "verify:manifests": "node scripts/verify-manifests.mjs",
     "fixtures": "node testing/fixture-lab/server.mjs",
     "test:e2e:firefox": "pnpm build:spike:firefox && node scripts/test-firefox.mjs",
+    "test:discovery:firefox": "pnpm build:firefox && node scripts/test-discovery-firefox.mjs",
     "test:worker-idle": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-worker-idle.mjs"
   },
   "devDependencies": {

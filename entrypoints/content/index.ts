@@ -1,6 +1,9 @@
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { browser } from 'wxt/browser';
 import { createMirrorEffect } from '../../src/content/mirror-effect';
+import { DiscoverySession } from '../../src/content/discovery';
+import { isEligibleVideo } from '../../src/content/candidates';
+import { watchTargetConnection } from '../../src/content/target-connection';
 import { PROTOCOL_VERSION, isContentRequest, type CandidateRef, type ContentResponse } from '../../src/shared/protocol';
 
 const AGENT_KEY = '__antiMirrorAgentV1';
@@ -11,6 +14,7 @@ interface ActiveTarget extends CandidateRef {
   video: HTMLVideoElement;
   handle: { dispose(): void };
   lease?: ReturnType<typeof setTimeout>;
+  connection?: { dispose(): void };
 }
 
 interface AgentGlobal { dispose(): void }
@@ -25,10 +29,13 @@ export default defineContentScript({
     const documentNonce = crypto.randomUUID();
     const targets = new Map<string, { video: HTMLVideoElement; mediaToken: string }>();
     let active: ActiveTarget | undefined;
+    let discovery: { operationId: string; session: DiscoverySession } | undefined;
+    let candidateOperation: string | undefined;
 
     const disposeActive = (operationId?: string) => {
       if (!active || (operationId && active.operationId !== operationId)) return;
       if (active.lease) clearTimeout(active.lease);
+      active.connection?.dispose();
       active.handle.dispose();
       active = undefined;
     };
@@ -41,19 +48,29 @@ export default defineContentScript({
       if (message.type === 'PROBE') return { protocolVersion: PROTOCOL_VERSION, type: 'PROBED', requestId: message.requestId, documentNonce };
       if (message.type !== 'CANCEL_OPERATION' && message.documentNonce !== documentNonce) return error(message.requestId, 'STALE_DOCUMENT');
       if (message.type === 'DISCOVER') {
+        if (active) return error(message.requestId, 'STALE_OPERATION');
+        discovery?.session.dispose();
         targets.clear();
-        const videos = [...document.querySelectorAll('video')].filter(isEligibleVideo).slice(0, 2);
-        const candidates = videos.map(video => {
-          const candidate = { targetId: crypto.randomUUID(), mediaToken: crypto.randomUUID() };
+        candidateOperation = message.operationId;
+        const session = new DiscoverySession();
+        discovery = { operationId: message.operationId, session };
+        const result = await session.run();
+        if (discovery?.session !== session || candidateOperation !== message.operationId) return error(message.requestId, 'STALE_OPERATION');
+        discovery = undefined;
+        const candidates = result.candidates.map(({ video, ...score }) => {
+          const candidate = { targetId: crypto.randomUUID(), mediaToken: crypto.randomUUID(), ...score };
           targets.set(candidate.targetId, { video, mediaToken: candidate.mediaToken });
           return candidate;
         });
         return { protocolVersion: PROTOCOL_VERSION, type: 'CANDIDATES', requestId: message.requestId,
-          operationId: message.operationId, documentNonce, candidates };
+          operationId: message.operationId, documentNonce, complete: result.complete, closedRoots: result.closedRoots, candidates };
       }
       if (message.type === 'CANCEL_OPERATION') {
         disposeActive(message.operationId);
-        targets.clear();
+        if (discovery?.operationId === message.operationId) {
+          discovery.session.dispose(); discovery = undefined;
+        }
+        if (candidateOperation === message.operationId) { targets.clear(); candidateOperation = undefined; }
         return { protocolVersion: PROTOCOL_VERSION, type: 'CANCELLED', requestId: message.requestId,
           operationId: message.operationId, documentNonce };
       }
@@ -61,7 +78,7 @@ export default defineContentScript({
         if (active?.operationId === message.operationId && active.targetId === message.targetId) {
           return applied('APPLIED', message.requestId, active, documentNonce);
         }
-        if (active) return error(message.requestId, 'STALE_OPERATION');
+        if (active || candidateOperation !== message.operationId) return error(message.requestId, 'STALE_OPERATION');
         const target = targets.get(message.targetId);
         if (!target || target.mediaToken !== message.mediaToken || !isEligibleVideo(target.video)) {
           targets.clear();
@@ -77,6 +94,12 @@ export default defineContentScript({
         active = { operationId: message.operationId, targetId: message.targetId,
           mediaToken: message.mediaToken, video: target.video, handle };
         active.lease = setTimeout(() => disposeActive(message.operationId), APPLY_LEASE_MS);
+        active.connection = watchTargetConnection(target.video, () => {
+          disposeActive(message.operationId);
+          void browser.runtime.sendMessage({ protocolVersion: PROTOCOL_VERSION, type: 'TARGET_LOST',
+            operationId: message.operationId, frameId: 0, documentNonce,
+            targetId: message.targetId, mediaToken: message.mediaToken }).catch(() => undefined);
+        });
         return applied('APPLIED', message.requestId, active, documentNonce);
       }
       if (message.type === 'COMMIT') {
@@ -94,6 +117,8 @@ export default defineContentScript({
 
     const dispose = () => {
       disposeActive();
+      discovery?.session.dispose(); discovery = undefined;
+      candidateOperation = undefined;
       targets.clear();
       browser.runtime.onMessage.removeListener(listener);
       delete root[AGENT_KEY];
@@ -104,13 +129,6 @@ export default defineContentScript({
     ctx.onInvalidated(dispose);
   },
 });
-
-function isEligibleVideo(video: HTMLVideoElement): boolean {
-  const style = getComputedStyle(video);
-  const bounds = video.getBoundingClientRect();
-  return video.isConnected && bounds.width >= 64 && bounds.height >= 36 &&
-    style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
-}
 
 function hasExpectedFlip(before: string, after: string): boolean {
   try {

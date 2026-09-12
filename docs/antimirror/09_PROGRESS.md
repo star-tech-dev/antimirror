@@ -1,13 +1,13 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-12. **Текущий этап:** S01 завершён.
-**Следующий слайс:** S02, deep discovery и выбор одной цели.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S02 завершён.
+**Следующий слайс:** S03, frame coordination.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
 | S00 Foundation + feasibility | DONE | [S00 evidence](evidence/S00-2026-09-12.md) | Chromium + Firefox native gates, natural MV3 idle |
 | S01 Первый вертикальный сценарий | DONE | [S01 evidence](evidence/S01-2026-09-12.md) | Production popup E2E Chromium |
-| S02 Deep discovery | TODO | — | — |
+| S02 Deep discovery | DONE | [S02 evidence](evidence/S02-2026-09-13.md) | Production Chromium + Firefox native roots; budgets/cleanup |
 | S03 Frame coordination | TODO | — | — |
 | S04 Lifecycle + recovery | TODO | — | — |
 | S05 UX + compatibility polish | TODO | — | — |
@@ -24,6 +24,16 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S02: iterative discovery open/closed/nested roots, late attach, added-subtree handling,
+fresh IO и background ranking. Лимиты/ошибки дают incomplete; cancel/success/timeout очищают
+временные ресурсы. Локальные target removal/reparent закрыты без полного lifecycle S04.
+17 unit tests, lint/types, Chrome+Firefox builds и manifest audit — PASS.
+Chrome 153: production E2E S01–S02, Firefox 155: production native-root gate — PASS.
+TD03: native video fullscreen Chromium возвращает conflict; fullscreen container проходит.
+Ручные реальные сайты и полный Firefox popup flow не проверены. Следующий шаг S03.
+
+## Предыдущий запуск S01
 
 S00 зафиксирован коммитом `d64a05c`. В S01 реализован popup → TabController → top-frame
 content agent → PREPARE/APPLIED/COMMIT/COMMITTED → ON/OFF. State per-tab хранится в native

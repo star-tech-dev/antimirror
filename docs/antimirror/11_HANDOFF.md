@@ -1,57 +1,60 @@
 # 11. Передача контекста
 
-## Где остановились · 2026-09-12
+## Где остановились · 2026-09-13
 
-S00 закоммичен как `d64a05c`. S01 DONE и оформлен отдельным локальным коммитом после S00.
-Production popup отражает один подходящий обычный video в top-document и снимает эффект.
-Подробные команды и границы — [S01 evidence](evidence/S01-2026-09-12.md).
+S00 `d64a05c`, S01 `0b21080`. S02 DONE; реализация и проверки описаны в
+[S02 evidence](evidence/S02-2026-09-13.md). Следующий слайс — S03.
 
 ## Следующее точное действие
 
-Прочитать `slices/S02_DEEP_DISCOVERY.md` и релевантные части
-`03_DISCOVERY_AND_RENDERING.md`. Заменить локальный `document.querySelectorAll('video')`
-на бюджетированный iterative discovery открытых/нативно доступных closed roots с candidate
-snapshot и детерминированным ranking. Не начинать frame coordinator S03.
+Прочитать `slices/S03_FRAME_COORDINATION.md` и относящиеся к нему разделы
+`02_STATE_AND_PROTOCOL.md`, `04_COMPATIBILITY_PERMISSIONS_SECURITY.md`.
+Подключить frame coordinator: адресация документам, frame ancestry, общие бюджеты вкладки,
+доступные/недоступные frames. Сейчас controller отправляет только в frameId=0,
+и guards TargetRef принимают только 0. Content не обходит iframe DOM.
 
-Сохранить двухфазный controller flow. Discovery должен вернуть максимум ограниченного payload;
-после выбора очистить проигравшие DOM references и все временные observers/timers.
-Существующий S01 намеренно считает два video неоднозначными; S02 заменит это ranking policy.
+## Реализовано
 
-## Реализовано и проверено
+DiscoverySession: deadline 3s, slices 4ms, budgets 25k elements/256 roots/32 videos,
+два host-pass и incremental addedNodes. Fresh IO snapshot возвращается после опустошения
+очереди. complete сообщает завершение доступного обхода, closedRoots — capability.
+Background rankCandidates выбирает один video; при open-only добавляет предупреждение.
+Не терять rollback flow PREPARE/APPLIED/COMMIT/COMMITTED и cancel по operation identity.
 
-`src/shared/protocol.ts` содержит version 1 guards; `src/shared/state.ts` — reducer и session
-record guard. `TabController` один пишет per-tab state, сериализует action updates, ограничивает
-request cache 64 элементами и компенсирует storage/action/send failures. Краткоживущая
-`pendingOperations` закрывает OFF во время PROBE. User-triggered fallback использует `scripting`
-только после неответившего PROBE. Content singleton хранится в isolated world.
+watchTargetConnection — один observer на composed ancestor chain без subtree. Он закрывает
+локальные T36–T37: removal/host removal снимают эффект, reparent сохраняет. Это ещё не полный
+TargetSession S04: media identity/history events/watchdog/GET_TARGET_STATE предстоит сделать.
+TARGET_LOST проверяет sender tab/frame и полный operation/document/target/media tuple.
 
-Chrome for Testing 153.0.8010.12 production E2E открывает настоящий action popup и проверяет:
-T01–T05, T08–T09, T32/reload race, T45, T49, sendMessage-ветку T50, базовые T51/T55.
-Unit: 4 файла / 11 tests, включая reducer, guards и rollback после storage/action failure.
-Chrome/Firefox MV3 builds и manifest verification проходят. S00 feasibility regression проходит.
+В OFF только passive runtime/lifetime handlers; после успеха нет discovery IO/timers,
+остаётся selected-target observer и owned Animation. Pending apply lease живёт до COMMIT.
+Старый CANCEL не удаляет candidates новой попытки. Проигравшие DOM refs очищаются при PREPARE.
+
+## Проверено
+
+17 unit tests, lint/types, обе production MV3 builds и manifest audit — PASS.
+Chromium 153.0.8010.12: production popup S01 regression + deep discovery, ranking,
+late roots, slot, deletion/reparent, limits, OFF mutation storm и error/deadline cleanup.
+Firefox 155.0.1: production native open/closed/nested/slot/secondary/late-shadow,
+apply/commit/disable и фактические matrices — PASS.
+
+Chromium E2E открывает настоящий action popup через raw CDP. Firefox discovery harness
+использует extension page как отправителя runtime messages и сохраняет target видимым для IO.
+Production test bridge отсутствует.
 
 ## Команды
 
 `pnpm lint`; `pnpm typecheck`; `pnpm test:unit`; `pnpm build:chrome`;
-`pnpm build:firefox`; `pnpm verify:manifests`; `pnpm test:e2e:chromium`;
-`pnpm test:e2e:feasibility`. Для свободных портов одновременно задавать FIXTURE_PORT и
-FIXTURE_FRAME_PORT. Browser downloads находятся в gitignored `.browser-cache`.
+`pnpm build:firefox`; `pnpm verify:manifests`;
+`FIXTURE_PORT=4273 FIXTURE_FRAME_PORT=4274 pnpm test:e2e:chromium`.
+Для Firefox запустить `FIXTURE_PORT=4373 FIXTURE_FRAME_PORT=4374 pnpm fixtures`, затем
+`FIXTURE_PORT=4373 FIXTURE_FRAME_PORT=4374 pnpm test:discovery:firefox`.
+Browser binaries — .browser-cache; Firefox path задаётся FIREFOX_BINARY.
 
-## Не потерять
+## Не потерять / долг
 
-Popup URL проверяется в background, а переданный tabId повторно сверяется с активной вкладкой.
-Popup-open ничего не включает. Content сообщения принимаются только от extension runtime.
-PROBE ничего не сканирует. S01 discovery работает только после trusted SET_ENABLED и только
-в top-frame. OFF не оставляет candidate refs, mirror, observers или polling; apply lease 5s
-существует только до COMMIT. Старый operation не снимает новый effect.
-
-E2E получает настоящий popup target через `chrome.action.openPopup()` и raw CDP attach,
-потому что Playwright persistent context не публикует этот popup как обычный Page event.
-Production extension не содержит test bridge. Direct CDP используется только тестом.
-
-## Непроверенное / долг
-
-Visible headed manual smoke — NOT_RUN. Firefox S01 popup flow — NOT_RUN; только production build.
-Deep roots/ranking (S02), frames (S03), target/media/history lifecycle и full MV3 recovery (S04),
-hotkey/UX matrix (S05), реальные сайты/VK, native controls/fullscreen/PiP — не реализованы или
-не проверены. TD02: загруженный после worker restart state ещё требует GET_TARGET_STATE reconciliation.
+TD02: session state после worker restart требует reconciliation в S04.
+TD03: Chromium native fullscreen самого video даёт TRANSFORM_CONFLICT; fullscreen container
+проходит. Проверку renderer/controls продолжить в S05, не считать весь fullscreen PASS.
+Ручной headed smoke, полный Firefox action-popup flow, реальные сайты/VK и PiP — NOT_RUN.
+Общие frame budgets не реализованы до S03. Budget 4ms cooperative, не hard real-time.
