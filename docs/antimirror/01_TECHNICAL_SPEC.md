@@ -171,12 +171,14 @@ Firefox MV3 background не считать Chromium service worker: провер
 
 Команды созданы в S00 (2026-09-12). Зафиксированы Node 24.13.0, pnpm 10.29.2,
 WXT 0.21.4 и TypeScript 5.9.3; остальные точные версии — в package.json/lockfile.
-Обычная сборка пока всегда OFF; первый пользовательский сценарий относится к S01.
+С S01 обычная сборка поддерживает ручной popup-сценарий для одного обычного video в
+top-document. Deep roots и frame coordination остаются за S02–S03.
 
 Feasibility использует отдельные entrypoints в `testing/extension/entrypoints` и `.output-spike`.
 `pnpm build:spike:chrome` / `pnpm build:spike:firefox` включают их через ANTIMIRROR_SPIKE=1;
 обычные builds не содержат тестовых команд. `verify:manifests` проверяет JS/HTML артефакты.
-`pnpm test:e2e:chromium` сам поднимает fixture-lab; для `pnpm test:e2e:firefox` и
+`pnpm test:e2e:chromium` проверяет production S01, `pnpm test:e2e:feasibility` — S00;
+обе команды сами поднимают fixture-lab. Для `pnpm test:e2e:firefox` и
 `pnpm test:worker-idle` предварительно запустить `pnpm fixtures` с теми же портами.
 Подробный setup — в README. Native Firefox проверяется Selenium + временный addon,
 Chromium — Playwright, естественный idle — отдельный raw-CDP harness без worker debugger.

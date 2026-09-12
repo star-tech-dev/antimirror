@@ -1,1 +1,7 @@
-body { width: 280px; margin: 0; padding: 20px; font: 15px system-ui; color: #17202a; background: #f6f7f9; } h1 { font-size: 20px; } button { width: 100%; padding: 10px; }
+body { width: 280px; margin: 0; font: 15px system-ui; color: #17202a; background: #f6f7f9; }
+main { padding: 20px; }
+h1 { margin: 0 0 12px; font-size: 20px; }
+#status { min-height: 2.5em; margin: 0 0 14px; color: #465362; }
+button { width: 100%; padding: 10px; border: 0; border-radius: 8px; color: white; background: #176b4d; font: inherit; font-weight: 650; }
+button[aria-pressed="true"] { background: #9d2933; }
+button:disabled { opacity: .6; }

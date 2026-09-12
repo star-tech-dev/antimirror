@@ -1,12 +1,12 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-12. **Текущий этап:** S00 завершён.
-**Следующий слайс:** S01, первый ручной вертикальный сценарий.
+**Последнее обновление:** 2026-09-12. **Текущий этап:** S01 завершён.
+**Следующий слайс:** S02, deep discovery и выбор одной цели.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
 | S00 Foundation + feasibility | DONE | [S00 evidence](evidence/S00-2026-09-12.md) | Chromium + Firefox native gates, natural MV3 idle |
-| S01 Первый вертикальный сценарий | TODO | — | — |
+| S01 Первый вертикальный сценарий | DONE | [S01 evidence](evidence/S01-2026-09-12.md) | Production popup E2E Chromium |
 | S02 Deep discovery | TODO | — | — |
 | S03 Frame coordination | TODO | — | — |
 | S04 Lifecycle + recovery | TODO | — | — |
@@ -25,16 +25,16 @@ Git status был чист; старого extension runtime, package.json и LI
 
 ## Последний завершённый запуск
 
-Созданы WXT 0.21.4 / TypeScript strict / vanilla scaffold, lockfile, Node/pnpm pins,
-пассивный OFF content entrypoint, background status stub, popup-заглушка и ON/OFF PNG.
-Добавлены adapter native shadow access и additive effect primitive без production activation.
-Отдельный test-only addon проверяет native roots, transforms/cleanup и related frames.
+S00 зафиксирован коммитом `d64a05c`. В S01 реализован popup → TabController → top-frame
+content agent → PREPARE/APPLIED/COMMIT/COMMITTED → ON/OFF. State per-tab хранится в native
+storage.session; action обновляется последовательно. Operation/document/target/media identity
+отсекают stale ответы. Повторная инъекция и requestId идемпотентны. OFF очищает owned effect
+и candidate references; таймер существует только у неподтверждённого apply lease.
 
-Успешны typecheck, lint, 3 unit tests, обе MV3 builds и manifest/artifact verification.
-Реальные браузеры: Chrome for Testing 153.0.8010.12 и Firefox 150.0.1 / 155.0.1, macOS 26.5 arm64.
-В Chromium подтверждены принудительный restart и естественный 40-секундный idle worker,
-сохранение native session и активного effect. Firefox session roundtrip подтверждён;
-сон Firefox event page и полный controller recovery остаются для S04.
+Успешны lint, typecheck, 11 unit tests, Chrome/Firefox MV3 builds, manifest verification,
+production popup E2E и S00 feasibility regression. Chrome for Testing 153.0.8010.12:
+popup-open не активирует; ON/OFF, две вкладки, paused/no/multiple video, rapid cancel,
+duplicate request/reinjection, current site style, reload race и protected page — PASS.
 
-Нет блокеров перехода к S01. Реальные сайты/VK, fullscreen/native controls/PiP и release
-не проверялись. S00 не является готовым пользовательским расширением.
+Нет блокеров перехода к S02. S01 проверен только на synthetic top-level fixtures в Chromium;
+ручной видимый smoke, Firefox product flow, реальные сайты, deep roots и iframe не заявлены PASS.

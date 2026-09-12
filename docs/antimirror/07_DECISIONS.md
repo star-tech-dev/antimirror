@@ -54,3 +54,17 @@ Native root adapters подтверждены в extension contexts Chrome for T
 активацией и отсутствует в обычных артефактах. Firefox minimum 140.0 выбран вместе с
 декларацией `data_collection_permissions: { required: ['none'] }`.
 Точные результаты: [evidence](evidence/S00-2026-09-12.md).
+
+## S01 · 2026-09-12
+
+Вертикальный срез использует versioned typed protocol и двухфазный apply/commit. Background
+остаётся единственным писателем native session state; popup передаёт `desired`, tabId сверяется
+с активной вкладкой, а action ON устанавливается только после COMMITTED. До PROBE background
+создаёт краткоживущую operation identity: это закрывает обнаруженную E2E гонку ON→OFF→late PROBE
+без записи фиктивного documentNonce в session storage.
+
+Статический агент идемпотентен в isolated world. Если PROBE не отвечает после явного клика,
+background один раз пробует программно загрузить тот же собранный agent в top-frame; поэтому
+permission `scripting` фактически используется для вкладок, открытых до установки/update.
+Проверка transform выполняется до APPLIED; несовпадение немедленно отменяет owned Animation.
+Подробности и границы — [evidence](evidence/S01-2026-09-12.md).

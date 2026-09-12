@@ -1,7 +1,7 @@
 # АнтиЗеркало / AntiMirror — пакет для реализации в Codex
 
 **Редакция:** 2026-09-11 · **Объём продукта:** desktop v1, только ручное включение.
-**Статус:** создан каркас S00 и browser feasibility harness; пользовательское включение ещё не реализовано (S01).
+**Статус:** S00–S01 завершены; работает ручной popup-сценарий для одного обычного top-level video.
 
 Расширение горизонтально отражает один выбранный основной HTMLVideoElement в текущей
 вкладке. Не скачивает и не анализирует видеопоток, не вмешивается в права доступа к контенту.
@@ -24,14 +24,16 @@ pnpm build:firefox
 pnpm verify:manifests
 ```
 
-Сборки находятся в `.output/chrome-mv3` и `.output/firefox-mv3`.
-Popup сейчас показывает OFF и недоступную кнопку: это честный каркас, а не готовый toggle.
+Сборки находятся в `.output/chrome-mv3` и `.output/firefox-mv3`. Popup включает и выключает
+ровно один подходящий обычный video в top-document. Deep shadow discovery и iframe coordination
+появятся в S02–S03; при нескольких video текущий срез остаётся OFF с объяснением.
 
-## Браузерные feasibility-проверки
+## Браузерные проверки
 
 ```sh
 PLAYWRIGHT_BROWSERS_PATH=.browser-cache pnpm exec playwright install chromium
 pnpm test:e2e:chromium
+pnpm test:e2e:feasibility
 ```
 
 Playwright сам запускает стенд. Если порты заняты, передать оба свободных порта:
@@ -54,9 +56,12 @@ Firefox harness использует установленный `/Applications/F
 этот флаг не нужен пользователям расширения. `FIXTURE_PORT` должен совпадать
 с запущенным стендом. Idle-проба ждёт 40 секунд без debugger attachment к worker.
 
-Тестовая сборка `.output-spike` содержит служебные команды и **не предназначена для распространения**.
+`test:e2e:chromium` проверяет production popup-сценарий. `test:e2e:feasibility` повторяет
+низкоуровневые S00 gates. Тестовая сборка `.output-spike` содержит служебные команды и
+**не предназначена для распространения**.
 Снимки синтетического видео пишутся в gitignored `test-results`. Результаты и ограничения:
-[отчёт S00](docs/antimirror/evidence/S00-2026-09-12.md).
+[S00](docs/antimirror/evidence/S00-2026-09-12.md),
+[S01](docs/antimirror/evidence/S01-2026-09-12.md).
 
 Для продолжения использовать [CONTINUE_CODEX.md](CONTINUE_CODEX.md), для независимого review —
 [REVIEW_CODEX.md](REVIEW_CODEX.md). Текущий следующий шаг указан в progress/handoff.

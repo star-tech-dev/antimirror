@@ -1,12 +1,24 @@
 import { defineBackground } from 'wxt/utils/define-background';
 import { browser } from 'wxt/browser';
+import { TabController } from '../src/background/tab-controller';
+import { isUiRequest } from '../src/shared/protocol';
+
 export default defineBackground(() => {
-  // S00 is deliberately OFF. No state, discovery or enable path until S01.
-  browser.runtime.onMessage.addListener((message: unknown, sender) => {
-    if (sender.id === browser.runtime.id && !sender.tab &&
-        typeof message === 'object' && message !== null &&
-        'type' in message && message.type === 'GET_STATUS') {
-      return Promise.resolve({ enabled: false, reason: 'FOUNDATION_ONLY' });
-    }
+  const controller = new TabController();
+
+  browser.runtime.onMessage.addListener(async (message: unknown, sender) => {
+    await controller.ready;
+    if (!isUiRequest(message) || sender.id !== browser.runtime.id || sender.tab ||
+        sender.url !== browser.runtime.getURL('/popup.html')) return undefined;
+    const [active] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (active?.id !== message.tabId) return undefined;
+    return message.type === 'GET_STATE'
+      ? controller.getState(message.tabId)
+      : controller.setEnabled(message.tabId, message.desired, message.requestId);
   });
+
+  browser.webNavigation.onCommitted.addListener(details => {
+    if (details.frameId === 0) void controller.ready.then(() => controller.resetForNavigation(details.tabId)).catch(() => undefined);
+  });
+  browser.tabs.onRemoved.addListener(tabId => { void controller.ready.then(() => controller.remove(tabId)).catch(() => undefined); });
 });

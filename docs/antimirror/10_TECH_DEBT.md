@@ -1,11 +1,11 @@
 # 10. Технический долг
 
-Обновлено после S00, 2026-09-12. Начальный репозиторий содержал документацию и fixture-lab;
-унаследованного runtime не было. Подтверждённых блокирующих дефектов S00 не осталось.
+Обновлено после S01, 2026-09-12.
 
 | ID | Severity | Конкретная проблема | Evidence | Почему отложено | Исправление / слайс | Статус |
 |---|---|---|---|---|---|---|
-| TD01 | Medium | `createMirrorEffect` создаёт handle без диагностики cascade/transform conflict; нельзя использовать его как подтверждение ON | src/content/mirror-effect.ts; S00 проверяет только совместимые fixtures | Это ограниченный механизм feasibility, не подключённый к обычной сборке | S01: проверка фактического применения, rollback и error; S05: расширенная compatibility matrix | OPEN |
+| TD01 | Medium | `createMirrorEffect` сам не диагностирует conflict | S01 caller сравнивает фактическую матрицу до APPLIED и делает rollback | Ownership оставлен у content session, primitive остаётся малым | S05 расширяет compatibility matrix, но базовый дефект закрыт | CLOSED |
+| TD02 | High | После пробуждения background загруженный `on/applying` state пока не сверяется через `GET_TARGET_STATE` | `SessionStore.load`; протокол recovery ещё не реализован | Полный recovery и mismatch policy принадлежат S04; S01 E2E не перезапускает worker | S04: адресная reconciliation и action repair | OPEN |
 
-Firefox event-page idle, реальные сайты и остальные непроведённые тесты перечислены в evidence
+Firefox product flow/idle, реальные сайты и остальные непроведённые тесты перечислены в evidence
 как verification gaps, а не как доказанные баги. Не снимать ограничения по одному unit mock.

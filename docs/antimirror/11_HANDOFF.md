@@ -2,49 +2,56 @@
 
 ## Где остановились · 2026-09-12
 
-S00 DONE. Начальная база: `5d2f6fd` (docs), изменения S00 оставлены в рабочем дереве,
-без commit/push/publication. Полные факты — [evidence](evidence/S00-2026-09-12.md).
-Каркас WXT готов, но обычная сборка всегда OFF: кнопка пока disabled, пользовательской
-активации нет. Не считать test-only SPIKE_APPLY реализацией доверенного toggle.
+S00 закоммичен как `d64a05c`. S01 DONE и оформлен отдельным локальным коммитом после S00.
+Production popup отражает один подходящий обычный video в top-document и снимает эффект.
+Подробные команды и границы — [S01 evidence](evidence/S01-2026-09-12.md).
 
 ## Следующее точное действие
 
-Прочитать `slices/S01_VERTICAL_SLICE.md` и нужные разделы `02_STATE_AND_PROTOCOL.md`.
-Реализовать один top-frame video: кнопка popup → background controller → адресный APPLY/ACK
-с document/operation/target IDs → подтверждённый ON → обратимый OFF.
-Перед использованием `createMirrorEffect` добавить проверку фактического результата/conflict
-и ownership по требованиям S01; S00 primitive сам их не обеспечивает.
-Не начинать deep scanner/frame coordinator раньше соответствующих слайсов.
+Прочитать `slices/S02_DEEP_DISCOVERY.md` и релевантные части
+`03_DISCOVERY_AND_RENDERING.md`. Заменить локальный `document.querySelectorAll('video')`
+на бюджетированный iterative discovery открытых/нативно доступных closed roots с candidate
+snapshot и детерминированным ranking. Не начинать frame coordinator S03.
 
-## Проверенная основа
+Сохранить двухфазный controller flow. Discovery должен вернуть максимум ограниченного payload;
+после выбора очистить проигравшие DOM references и все временные observers/timers.
+Существующий S01 намеренно считает два video неоднозначными; S02 заменит это ranking policy.
 
-Node 24.13.0, pnpm 10.29.2, WXT 0.21.4, TypeScript 5.9.3. Установка из lockfile,
-typecheck, lint, unit (3), Chrome/Firefox MV3 builds и manifest verification прошли.
-Chrome for Testing 153.0.8010.12 + Firefox 150.0.1 / 155.0.1: closed native accessor,
-about:blank/srcdoc, additive scaleX с исходным transform/3D ancestor, cleanup — PASS.
-Raw-CDP Chromium: естественный idle 40 s, смена boot ID, session и effect сохранены — PASS.
-Firefox event-page idle/full controller recovery пока NOT_RUN, это проверка S04.
+## Реализовано и проверено
+
+`src/shared/protocol.ts` содержит version 1 guards; `src/shared/state.ts` — reducer и session
+record guard. `TabController` один пишет per-tab state, сериализует action updates, ограничивает
+request cache 64 элементами и компенсирует storage/action/send failures. Краткоживущая
+`pendingOperations` закрывает OFF во время PROBE. User-triggered fallback использует `scripting`
+только после неответившего PROBE. Content singleton хранится в isolated world.
+
+Chrome for Testing 153.0.8010.12 production E2E открывает настоящий action popup и проверяет:
+T01–T05, T08–T09, T32/reload race, T45, T49, sendMessage-ветку T50, базовые T51/T55.
+Unit: 4 файла / 11 tests, включая reducer, guards и rollback после storage/action failure.
+Chrome/Firefox MV3 builds и manifest verification проходят. S00 feasibility regression проходит.
 
 ## Команды
 
-`pnpm install --frozen-lockfile`; `pnpm typecheck`; `pnpm lint`; `pnpm test:unit`;
-`pnpm build:chrome`; `pnpm build:firefox`; `pnpm verify:manifests`.
-`pnpm test:e2e:chromium` поднимает собственный стенд; при конфликте портов задать
-FIXTURE_PORT и FIXTURE_FRAME_PORT. `.browser-cache` нужен для Playwright browser.
-Для `pnpm test:e2e:firefox` и `pnpm test:worker-idle` отдельно запустить `pnpm fixtures`.
-Firefox binary переопределяется FIREFOX_BINARY; используются временные профили.
+`pnpm lint`; `pnpm typecheck`; `pnpm test:unit`; `pnpm build:chrome`;
+`pnpm build:firefox`; `pnpm verify:manifests`; `pnpm test:e2e:chromium`;
+`pnpm test:e2e:feasibility`. Для свободных портов одновременно задавать FIXTURE_PORT и
+FIXTURE_FRAME_PORT. Browser downloads находятся в gitignored `.browser-cache`.
 
 ## Не потерять
 
-`.output-spike` / `testing/extension` — только диагностическая сборка, её нельзя распространять.
-Обычные JS/HTML проверяются на отсутствие тестовых endpoints. Fixture рисует собственную
-асимметричную картинку; production код не читает кадры или page globals.
-Playwright worker debugger удерживает idle: естественный сон проверять raw-CDP скриптом,
-который подключается только к probe page и выбирает точный ID нашего addon.
-Скриншоты находятся в gitignored test-results; не публиковать пользовательские страницы.
+Popup URL проверяется в background, а переданный tabId повторно сверяется с активной вкладкой.
+Popup-open ничего не включает. Content сообщения принимаются только от extension runtime.
+PROBE ничего не сканирует. S01 discovery работает только после trusted SET_ENABLED и только
+в top-frame. OFF не оставляет candidate refs, mirror, observers или polling; apply lease 5s
+существует только до COMMIT. Старый operation не снимает новый effect.
 
-## Непроверенное
+E2E получает настоящий popup target через `chrome.action.openPopup()` и raw CDP attach,
+потому что Playwright persistent context не публикует этот popup как обычный Page event.
+Production extension не содержит test bridge. Direct CDP используется только тестом.
 
-VK и прочие реальные сайты, fullscreen/native controls/PiP, Edge/Brave, Firefox event-page
-suspend и последующий production controller recovery. Минимум Firefox в manifest — 140,
-но фактически тестировались 150.0.1 и 155.0.1. Полный жизненный цикл относится к S01–S04.
+## Непроверенное / долг
+
+Visible headed manual smoke — NOT_RUN. Firefox S01 popup flow — NOT_RUN; только production build.
+Deep roots/ranking (S02), frames (S03), target/media/history lifecycle и full MV3 recovery (S04),
+hotkey/UX matrix (S05), реальные сайты/VK, native controls/fullscreen/PiP — не реализованы или
+не проверены. TD02: загруженный после worker restart state ещё требует GET_TARGET_STATE reconciliation.

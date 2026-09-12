@@ -9,6 +9,7 @@ for (const target of ['chrome', 'firefox']) {
   assert.deepEqual(m.host_permissions, ['http://*/*', 'https://*/*']);
   assert.ok(m.action.default_popup);
   assert.equal(m.action.default_icon['16'], 'icons/off-16.png');
+  assert.equal(m.action.default_title, 'AntiMirror — OFF');
   assert.deepEqual(m.browser_specific_settings.gecko.data_collection_permissions.required, ['none']);
   if (target === 'chrome') assert.ok(m.background.service_worker);
   else { assert.ok(m.background.scripts?.length); assert.equal(m.background.service_worker, undefined); }
