@@ -35,3 +35,6 @@ body.compact #status { font-size: 11px; margin: 0 0 8px; padding: 6px; }
 body.compact iframe { height: 440px; }
 canvas { max-width: 100%; }
 .noise { display: none; }
+
+/* S00: exercise an actual 3D ancestor without rotating the video backface. */
+.scene-3d { transform: perspective(1200px) rotateY(12deg); transform-style: preserve-3d; }

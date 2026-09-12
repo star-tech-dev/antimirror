@@ -1,25 +1,65 @@
 # АнтиЗеркало / AntiMirror — пакет для реализации в Codex
 
 **Редакция:** 2026-09-11 · **Объём продукта:** desktop v1, только ручное включение.
-**Статус:** проектная документация и локальный тестовый стенд; не готовое расширение.
+**Статус:** создан каркас S00 и browser feasibility harness; пользовательское включение ещё не реализовано (S01).
 
 Расширение горизонтально отражает один выбранный основной HTMLVideoElement в текущей
 вкладке. Не скачивает и не анализирует видеопоток, не вмешивается в права доступа к контенту.
 Рабочие имена: «АнтиЗеркало» / AntiMirror. Имя издателя и доступность названия
 нужно подтвердить перед публикацией. Лицензия и реквизиты публикации в этом пакете не назначаются.
 
-## Начало работы
+## Локальный запуск
 
-1. Перенести пакет в репозиторий, сохранив скрытую папку `.agents`. Если в репозитории уже
-   есть README, AGENTS, навыки или код, **сначала объединить**, а не перезаписывать их.
-   Этот README можно сохранить как `docs/antimirror/PACK_README.md`.
-2. Запустить Codex в корне проекта и передать содержимое [START_CODEX.md](START_CODEX.md).
-3. Дальше использовать [CONTINUE_CODEX.md](CONTINUE_CODEX.md). Независимая проверка —
-   [REVIEW_CODEX.md](REVIEW_CODEX.md).
+Нужны Node 24.13.0 (`.node-version`) и pnpm 10.29.2. Зависимости зафиксированы lockfile.
 
-Первая задача — S00: проверить окружение, встроить документацию, создать WXT-проект при
-его отсутствии, подтвердить рискованные браузерные механизмы на реальных браузерах.
-Это **реализация с проверкой**, а не очередной большой круг переписывания документов.
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+# отдельно: pnpm dev:firefox
+pnpm typecheck
+pnpm lint
+pnpm test:unit
+pnpm build:chrome
+pnpm build:firefox
+pnpm verify:manifests
+```
+
+Сборки находятся в `.output/chrome-mv3` и `.output/firefox-mv3`.
+Popup сейчас показывает OFF и недоступную кнопку: это честный каркас, а не готовый toggle.
+
+## Браузерные feasibility-проверки
+
+```sh
+PLAYWRIGHT_BROWSERS_PATH=.browser-cache pnpm exec playwright install chromium
+pnpm test:e2e:chromium
+```
+
+Playwright сам запускает стенд. Если порты заняты, передать оба свободных порта:
+
+```sh
+FIXTURE_PORT=4273 FIXTURE_FRAME_PORT=4274 pnpm test:e2e:chromium
+```
+
+Для следующих двух команд сначала запустить `pnpm fixtures` в отдельном терминале:
+
+```sh
+pnpm test:e2e:firefox
+pnpm test:worker-idle
+```
+
+Firefox harness использует установленный `/Applications/Firefox.app/Contents/MacOS/firefox`;
+на другой системе задать `FIREFOX_BINARY`. Geckodriver 0.36.0 загружается в `.browser-cache`.
+Браузеры запускаются в отдельных временных профилях. Firefox harness использует
+`--remote-allow-system-access` для WebDriver доступа к собственной служебной странице addon;
+этот флаг не нужен пользователям расширения. `FIXTURE_PORT` должен совпадать
+с запущенным стендом. Idle-проба ждёт 40 секунд без debugger attachment к worker.
+
+Тестовая сборка `.output-spike` содержит служебные команды и **не предназначена для распространения**.
+Снимки синтетического видео пишутся в gitignored `test-results`. Результаты и ограничения:
+[отчёт S00](docs/antimirror/evidence/S00-2026-09-12.md).
+
+Для продолжения использовать [CONTINUE_CODEX.md](CONTINUE_CODEX.md), для независимого review —
+[REVIEW_CODEX.md](REVIEW_CODEX.md). Текущий следующий шаг указан в progress/handoff.
 
 ## Порядок чтения
 
@@ -57,4 +97,4 @@
 ## Что действительно проверено в пакете
 
 См. [PACK_CHECKS](verification/PACK_CHECKS.md). Проверка файлов и тестового стенда **не равна**
-проверке ещё не реализованного расширения. Все слайсы изначально имеют статус `TODO`.
+проверке расширения. Результаты реализации ведутся отдельно в [progress](docs/antimirror/09_PROGRESS.md).

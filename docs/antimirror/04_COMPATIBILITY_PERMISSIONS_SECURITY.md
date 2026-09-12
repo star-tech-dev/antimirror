@@ -124,3 +124,12 @@ reload. После update/uninstall браузер может оставить �
 до cleanup/перезагрузки. Использовать ctx invalidation и собственный dispose, но не обещать
 атомарное восстановление страницы при принудительном уничтожении extension context.
 При отключении/удалении расширения пользователь должен знать, что reload очищает остатки.
+
+## Зафиксированная основа S00 (2026-09-12)
+
+Для Firefox выбран manifest minimum 140.0 и
+`browser_specific_settings.gecko.data_collection_permissions.required: ["none"]`.
+Сборка не передаёт данные за пределы браузера. Это декларация для desktop Firefox,
+не доказательство совместимости со всеми версиями начиная с 140.
+Основание: [Firefox built-in consent](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/).
+Реальные версии и границы capability-проверок — в evidence/S00-2026-09-12.md.

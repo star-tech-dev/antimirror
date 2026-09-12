@@ -115,13 +115,14 @@ const effect = new KeyframeEffect(video, [
 ], { duration: 1, fill: 'both', composite: 'add' });
 const animation = new Animation(effect, document.timeline);
 animation.currentTime = 0; // не запускать бесконечный animation loop
-// Проверить фактическое применение и semantics paused/currentTime в S00.
+animation.pause(); // S00 подтвердил currentTime=0 + pause() в обоих extension contexts.
 // disable: animation.cancel(); удалить только принадлежащий handle.
 ```
 
 В изолированном page-context Chromium при подготовке пакета простой пример применился
 и обратимо снялся (см. `verification/PACK_CHECKS.md`). Это не заменяет extension/browser gate.
-В S00 подтвердить выбранную семантику currentTime/pause на обеих платформах. Статичный
+S00 подтвердил выбранную семантику currentTime/pause на Chrome for Testing 153 и Firefox 150;
+см. [evidence](evidence/S00-2026-09-12.md). Статичный
 owned effect выбран ради композиции и reversible cleanup, не ради видимой анимации.
 Не вызывать commitStyles(): это запишет результат в inline style и нарушит ownership.
 Не накапливать filling animations при повторных ON. Один handle — один video — одна сессия.

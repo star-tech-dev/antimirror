@@ -204,7 +204,7 @@ switch (key) {
     }, {once:true});
     stage.append(frame); frames.push(frame); break;
   }
-  case 'transforms': makeVideo(stage).classList.add('transformed'); break;
+  case 'transforms': stage.classList.add('scene-3d'); makeVideo(stage).classList.add('transformed'); break;
   case 'site-animation': makeVideo(stage).classList.add('rotate-site'); break;
   case 'important': makeVideo(stage).classList.add('important-transform'); break;
   case 'origin-corner': makeVideo(stage).classList.add('origin-corner'); break;

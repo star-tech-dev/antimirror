@@ -15,7 +15,7 @@
 | ADR07 | Passive static bootstrap + manual existing-page fallback | Поздние frames/related URLs; OFF без тяжёлой работы | Принято |
 | ADR08 | HTTP/HTTPS hosts вместо только activeTab | Требуется широкий cross-origin player coverage | Принято, store review не гарантирован |
 | ADR09 | Native storage.session | Sleep worker ≠ новая сессия; persistent enabled не нужен | Принято |
-| ADR10 | Постоянный paused additive scaleX effect | Не затирает transform, снимается отдельным handle, без 3D backface | Предпочтительно, S00 gate |
+| ADR10 | Постоянный paused additive scaleX effect | Не затирает transform, снимается отдельным handle, без 3D backface | Принято по S00 synthetic gate |
 | ADR11 | Нет автоматического retarget после потери | Явная граница ручного включения | Принято |
 | ADR12 | Runtime identity + versioned protocol | Late ACK, frame reuse, reload и double injection | Принято |
 | ADR13 | Бюджеты и короткое окно discovery | Удобство не оправдывает вечный global observer/polling | Принято |
@@ -40,3 +40,17 @@ Firefox или объявлением closed roots невозможными бе
 S00 выполняет inventory: какие решения/модули уже реализованы, что соответствует новой v1,
 что относится к старой версии. Существующие инструкции объединить, полезные тесты сохранить.
 Не удалять рабочие файлы только ради буквального совпадения с рекомендованным деревом папок.
+
+## S00 · 2026-09-12
+
+Native root adapters подтверждены в extension contexts Chrome for Testing 153.0.8010.12
+и Firefox 150.0.1 / 155.0.1. ADR10: `currentTime = 0` + `pause()` на отдельной Animation,
+`composite: add`, cleanup через `cancel()`. На асимметричном video подтверждены матрицы,
+исходные translate/rotate/scale, backface:hidden, 3D ancestor и возврат snapshot.
+Это не отменяет будущую проверку conflicts/animations/real sites.
+
+Тестовые entrypoints полностью отделены через ANTIMIRROR_SPIKE и `.output-spike`.
+В release scaffold только OFF; диагностическая отправка команд не является продуктовой
+активацией и отсутствует в обычных артефактах. Firefox minimum 140.0 выбран вместе с
+декларацией `data_collection_permissions: { required: ['none'] }`.
+Точные результаты: [evidence](evidence/S00-2026-09-12.md).

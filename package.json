@@ -1,0 +1,46 @@
+{
+  "name": "antimirror",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.29.2",
+  "engines": {
+    "node": ">=24.13.0 <25",
+    "pnpm": ">=10.29.2 <11"
+  },
+  "scripts": {
+    "dev": "wxt -b chrome --mv3",
+    "dev:firefox": "wxt -b firefox --mv3",
+    "postinstall": "wxt prepare",
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "lint": "eslint .",
+    "test:unit": "vitest run",
+    "test:e2e:chromium": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test",
+    "build:chrome": "wxt build -b chrome --mv3",
+    "build:firefox": "wxt build -b firefox --mv3",
+    "build:spike:chrome": "ANTIMIRROR_SPIKE=1 wxt build -b chrome --mv3",
+    "build:spike:firefox": "ANTIMIRROR_SPIKE=1 wxt build -b firefox --mv3",
+    "verify:manifests": "node scripts/verify-manifests.mjs",
+    "fixtures": "node testing/fixture-lab/server.mjs",
+    "test:e2e:firefox": "pnpm build:spike:firefox && node scripts/test-firefox.mjs",
+    "test:worker-idle": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-worker-idle.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.10.1",
+    "@types/selenium-webdriver": "4.35.6",
+    "eslint": "10.10.0",
+    "geckodriver": "6.1.1",
+    "selenium-webdriver": "4.49.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.70.0",
+    "vitest": "4.0.18",
+    "wxt": "0.21.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

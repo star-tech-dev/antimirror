@@ -1,36 +1,50 @@
 # 11. Передача контекста
 
-## Где остановились
+## Где остановились · 2026-09-12
 
-Подготовлена новая каноническая v1 для ручного per-tab mirroring. Существующий репозиторий
-не читался и не изменялся; архив — вход для Codex, не результат исполнения всех слайсов.
+S00 DONE. Начальная база: `5d2f6fd` (docs), изменения S00 оставлены в рабочем дереве,
+без commit/push/publication. Полные факты — [evidence](evidence/S00-2026-09-12.md).
+Каркас WXT готов, но обычная сборка всегда OFF: кнопка пока disabled, пользовательской
+активации нет. Не считать test-only SPIKE_APPLY реализацией доверенного toggle.
 
-## Следующее действие
+## Следующее точное действие
 
-Выполнить S00_FOUNDATION. Сначала `git status` и inventory существующих AGENTS/skills/code,
-затем минимальный scaffold при необходимости и browser capability spikes.
-Не выполнять генератор поверх уже существующего проекта и не включать старый allowlist.
+Прочитать `slices/S01_VERTICAL_SLICE.md` и нужные разделы `02_STATE_AND_PROTOCOL.md`.
+Реализовать один top-frame video: кнопка popup → background controller → адресный APPLY/ACK
+с document/operation/target IDs → подтверждённый ON → обратимый OFF.
+Перед использованием `createMirrorEffect` добавить проверку фактического результата/conflict
+и ownership по требованиям S01; S00 primitive сам их не обеспечивает.
+Не начинать deep scanner/frame coordinator раньше соответствующих слайсов.
 
-## Не потерять
+## Проверенная основа
 
-Popup-open ≠ enable. Один target. OFF без прикладных scanners. Native closed-root APIs.
-Native session state для MV3. Strict URL/video/media reset. Все side effects защищены
-operation/document identities. Preferred rendering — reversible additive scaleX, gate S00.
-
-## Что нужно проверить первым
-
-Привилегированный доступ к closed roots в extension Chrome/Firefox; static related-frame
-injection; reversible transform composition; session persistence при idle worker;
-WXT MV3 manifests, включая Firefox background.
+Node 24.13.0, pnpm 10.29.2, WXT 0.21.4, TypeScript 5.9.3. Установка из lockfile,
+typecheck, lint, unit (3), Chrome/Firefox MV3 builds и manifest verification прошли.
+Chrome for Testing 153.0.8010.12 + Firefox 150.0.1 / 155.0.1: closed native accessor,
+about:blank/srcdoc, additive scaleX с исходным transform/3D ancestor, cleanup — PASS.
+Raw-CDP Chromium: естественный idle 40 s, смена boot ID, session и effect сохранены — PASS.
+Firefox event-page idle/full controller recovery пока NOT_RUN, это проверка S04.
 
 ## Команды
 
-В этом документационном пакете уже существует только независимый fixture runner:
-`node testing/fixture-lab/server.mjs`.
-Скрипты pnpm и runtime расширения создаются/проверяются в S00.
+`pnpm install --frozen-lockfile`; `pnpm typecheck`; `pnpm lint`; `pnpm test:unit`;
+`pnpm build:chrome`; `pnpm build:firefox`; `pnpm verify:manifests`.
+`pnpm test:e2e:chromium` поднимает собственный стенд; при конфликте портов задать
+FIXTURE_PORT и FIXTURE_FRAME_PORT. `.browser-cache` нужен для Playwright browser.
+Для `pnpm test:e2e:firefox` и `pnpm test:worker-idle` отдельно запустить `pnpm fixtures`.
+Firefox binary переопределяется FIREFOX_BINARY; используются временные профили.
 
-## Формат обновления после следующего запуска
+## Не потерять
 
-Записать: фактический diff, команды и результаты, незавершённый тест/gate, причину,
-следующую маленькую задачу, затронутые решения, проверенный browser/version.
-Не оставлять только «продолжить с того же места».
+`.output-spike` / `testing/extension` — только диагностическая сборка, её нельзя распространять.
+Обычные JS/HTML проверяются на отсутствие тестовых endpoints. Fixture рисует собственную
+асимметричную картинку; production код не читает кадры или page globals.
+Playwright worker debugger удерживает idle: естественный сон проверять raw-CDP скриптом,
+который подключается только к probe page и выбирает точный ID нашего addon.
+Скриншоты находятся в gitignored test-results; не публиковать пользовательские страницы.
+
+## Непроверенное
+
+VK и прочие реальные сайты, fullscreen/native controls/PiP, Edge/Brave, Firefox event-page
+suspend и последующий production controller recovery. Минимум Firefox в manifest — 140,
+но фактически тестировались 150.0.1 и 155.0.1. Полный жизненный цикл относится к S01–S04.

@@ -40,7 +40,7 @@ FIXTURE_PORT=4273 FIXTURE_FRAME_PORT=4274 node testing/fixture-lab/server.mjs
 | shadow-frame | Iframe внутри closed root |
 | frame-hidden | Hidden большой iframe не должен выиграть у видимого top video |
 | frame-srcdoc / frame-blank | Родственные about:srcdoc / about:blank документы |
-| transforms | Сайт уже задаёт translate/rotate/scale/backface-visibility |
+| transforms | Сайт уже задаёт translate/rotate/scale/backface-visibility и 3D ancestor |
 | site-animation | Сайт анимирует transform |
 | important / origin-corner | Конфликт cascade / нестандартный transform-origin |
 | strict-csp | Страница с CSP без разрешения inline script/style |

@@ -48,3 +48,13 @@
 Не меняй глобальные настройки Codex, системные skills и чужие процессы. Не публикуй расширение,
 не пушь в remote и не выполняй разрушительные команды без отдельного поручения.
 Локальные порты тестового стенда настраиваемые; при конфликте выбери свободные, не убивай процесс.
+
+## Команды после S00
+
+Node 24.13.0 (`.node-version`), pnpm 10.29.2. Установка: `pnpm install --frozen-lockfile`.
+Проверки: `pnpm typecheck`, `pnpm lint`, `pnpm test:unit`, обе `pnpm build:chrome` /
+`pnpm build:firefox`, затем `pnpm verify:manifests`.
+`pnpm test:e2e:chromium` запускает собственный стенд; `pnpm test:e2e:firefox` и
+`pnpm test:worker-idle` требуют запущенного `pnpm fixtures`. Порты согласовать через env.
+`.output-spike` — только feasibility, не распространять её как обычное расширение.
+Не подключать worker debugger при проверке естественного MV3 idle.
