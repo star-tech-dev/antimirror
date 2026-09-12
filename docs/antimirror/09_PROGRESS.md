@@ -1,14 +1,14 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S02 завершён.
-**Следующий слайс:** S03, frame coordination.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S03 завершён.
+**Следующий слайс:** S04, lifecycle и MV3 recovery.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
 | S00 Foundation + feasibility | DONE | [S00 evidence](evidence/S00-2026-09-12.md) | Chromium + Firefox native gates, natural MV3 idle |
 | S01 Первый вертикальный сценарий | DONE | [S01 evidence](evidence/S01-2026-09-12.md) | Production popup E2E Chromium |
 | S02 Deep discovery | DONE | [S02 evidence](evidence/S02-2026-09-13.md) | Production Chromium + Firefox native roots; budgets/cleanup |
-| S03 Frame coordination | TODO | — | — |
+| S03 Frame coordination | DONE | [S03 evidence](evidence/S03-2026-09-13.md) | Chromium full flow + Firefox native frame bind/watch |
 | S04 Lifecycle + recovery | TODO | — | — |
 | S05 UX + compatibility polish | TODO | — | — |
 | S06 Hardening + performance | TODO | — | — |
@@ -24,6 +24,16 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S03: сбор кандидатов по browser frame tree, адресный fallback, native parent bind/watch,
+общие budgets (4 concurrent scans / 64 frames / 100k visits / 3s), выбранная ancestor chain
+в session state. Target/ancestor navigation/removal и отзыв host access дают OFF; реклама
+не сбрасывает выбранный target. Inaccessible/omitted frames отличаются от NO_VIDEO.
+26 unit tests, lint/types, обе MV3 builds, manifest audit, Chromium S01–S03 E2E и Firefox
+native frame protocol — PASS. Полный Firefox popup и реальные сайты — NOT_RUN.
+TD02/TD03 остаются OPEN. Следующий шаг S04.
+
+## Предыдущий запуск S02
 
 S02: iterative discovery open/closed/nested roots, late attach, added-subtree handling,
 fresh IO и background ranking. Лимиты/ошибки дают incomplete; cancel/success/timeout очищают

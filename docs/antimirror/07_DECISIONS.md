@@ -88,3 +88,25 @@ operation/document/target/media identity. Media/history/worker recovery оста
 Native video fullscreen в Chromium возвращает TRANSFORM_CONFLICT, fullscreen контейнера
 проходит. Backend не заменялся в discovery-слайсе; TD03 оставлен для S05. Native-root gates
 Chrome 153 и Firefox 155 пройдены; Firefox harness использует production extension messaging.
+
+## S03 · 2026-09-13
+
+Browser getAllFrames задаёт frameId/parentFrameId/documentId. DOM refs остаются в content;
+coordinator резервирует бюджеты до отправки scan и возвращает неиспользованную часть после
+ответа. Concurrency=4, frames=64, visits/tab=100k, visits/document=25k, search=3s.
+Неполный доступный scan запрещает выбор; недоступные frames дают отдельный reason/warning.
+
+Bind token — одноразовое сопоставление source WindowProxy с обнаруженным iframe; page channel
+не имеет команд включения. BIND/READ отделены от WATCH/COMMIT_WATCH. Родители выбранной цепочки
+подтверждают watchers до PREPARE_APPLY; watch commit убирает lease. Неподтверждённые binds/watchers
+имеют lease 5s; установка/commit всей watcher-цепочки ограничены 1s каждая. CANCEL очищает все
+затронутые frames, RELEASE_DISCOVERY — проигравшие DOM refs и binds. ON остаётся после ACK
+выбранного target и watchers; режим не переносится на новое video/iframe.
+
+Blob/data Chromium не перечислены native frame tree в выполненном тесте; локальный frameCount
+выявляет разницу. Поддержка не имитируется обходом DOM или debugger. Firefox native related-frame
+scenarios прошли. Набор разрешений не расширен.
+
+Firefox runtime-команда из popup.html, открытого обычной вкладкой, корректно отклоняется UI
+sender guard. Native Firefox harness использует production content protocol напрямую;
+полный controller/UI путь подтверждён Chromium. Production guard ради теста не ослаблялся.

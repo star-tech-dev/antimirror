@@ -1,5 +1,5 @@
 import { browser } from 'wxt/browser';
-import { rankCandidates } from '../content/candidates';
+import { FrameCoordinator } from './frame-coordinator';
 import { presentState } from './action-presenter';
 import { SessionStore } from './session-store';
 import { PROTOCOL_VERSION, isContentResponse, type ContentRequest, type ContentResponse, type OffReason, type TargetRef } from '../shared/protocol';
@@ -13,9 +13,16 @@ export class TabController {
   private readonly requests = new Map<string, Promise<TabState>>();
   private readonly actionChains = new Map<number, Promise<void>>();
   private readonly pendingOperations = new Map<number, string>();
+  private readonly coordinators = new Map<number, FrameCoordinator>();
   readonly ready = this.store.ready;
 
   getState(tabId: number): TabState { return this.store.get(tabId) ?? initialState(tabId); }
+
+  async permissionsRevoked(): Promise<void> {
+    this.pendingOperations.clear();
+    for (const coordinator of this.coordinators.values()) coordinator.abort.abort();
+    await Promise.all(this.store.list().filter(state => state.phase !== 'off').map(state => this.disable(state.tabId, 'FRAMES_UNAVAILABLE')));
+  }
 
   setEnabled(tabId: number, desired: boolean, id: string): Promise<TabState> {
     const key = `${tabId}:${id}`;
@@ -28,8 +35,23 @@ export class TabController {
     return task;
   }
 
-  async resetForNavigation(tabId: number): Promise<void> {
-    if (this.getState(tabId).phase !== 'off') await this.disable(tabId, 'NAVIGATION');
+  async resetForNavigation(tabId: number, frameId = 0): Promise<void> {
+    const state = this.getState(tabId);
+    const coordinator = this.coordinators.get(tabId);
+    const relevant = frameId === 0 || (state.phase === 'searching' && coordinator?.knows(frameId)) ||
+      (state.phase !== 'off' && (('target' in state && state.target?.frameId === frameId) ||
+        state.ancestors?.some(ancestor => ancestor.parentFrameId === frameId || ancestor.childFrameId === frameId)));
+    if (!relevant) return;
+    this.pendingOperations.delete(tabId); coordinator?.abort.abort();
+    if (state.phase !== 'off') await this.disable(tabId, 'NAVIGATION');
+  }
+
+  async frameLost(tabId: number, frameId: number, operationId: string, nonce: string, token: string): Promise<void> {
+    const state = this.getState(tabId);
+    if (state.phase !== 'off' && state.operationId === operationId && state.ancestors?.some(ancestor =>
+      ancestor.parentFrameId === frameId && ancestor.parentNonce === nonce && ancestor.token === token)) {
+      await this.disable(tabId, 'TARGET_LOST');
+    }
   }
 
   async targetLost(tabId: number, operationId: string, target: TargetRef): Promise<void> {
@@ -41,6 +63,7 @@ export class TabController {
   }
 
   async remove(tabId: number): Promise<void> {
+    this.coordinators.get(tabId)?.abort.abort(); this.coordinators.delete(tabId);
     this.pendingOperations.delete(tabId);
     this.actionChains.delete(tabId);
     await this.store.delete(tabId);
@@ -66,21 +89,21 @@ export class TabController {
 
     state = startEnable(this.getState(tabId), operationId, probe.documentNonce);
     await this.commitState(state);
-    const discovered = await this.send(tabId, { protocolVersion: PROTOCOL_VERSION, type: 'DISCOVER',
-      requestId: requestId(), operationId, documentNonce: probe.documentNonce });
+    if (!this.isCurrent(tabId, operationId)) return this.getState(tabId);
+    const coordinator = new FrameCoordinator(tabId, operationId, (frameId, message, timeout) => this.send(tabId, message, frameId, timeout));
+    this.coordinators.set(tabId, coordinator);
+    const selection = await coordinator.collect();
     if (!this.isCurrent(tabId, operationId)) {
       await this.cancel(tabId, operationId);
       return this.getState(tabId);
     }
-    if (!discovered || discovered.type !== 'CANDIDATES' || discovered.operationId !== operationId ||
-        discovered.documentNonce !== probe.documentNonce) return this.fail(tabId, 'AGENT_UNAVAILABLE', operationId);
-    if (!discovered.complete) return this.fail(tabId, 'INCOMPLETE_COVERAGE', operationId);
-    const candidate = rankCandidates(discovered.candidates);
-    if (!candidate || candidate === 'AMBIGUOUS_TARGET') {
-      return this.fail(tabId, candidate ?? (discovered.closedRoots ? 'NO_VIDEO' : 'INCOMPLETE_COVERAGE'), operationId);
-    }
-    const target: TargetRef = { frameId: 0, documentNonce: probe.documentNonce,
-      targetId: candidate.targetId, mediaToken: candidate.mediaToken };
+    if (typeof selection === 'string') return this.fail(tabId, selection, operationId);
+    const { target, ancestors } = selection;
+    if (coordinator.documents.get(0)?.nonce !== probe.documentNonce) return this.fail(tabId, 'NAVIGATION', operationId);
+    state = { ...this.getState(tabId), ancestors } as TabState;
+    await this.commitState(state);
+    if (!this.isCurrent(tabId, operationId) || !await coordinator.watch(ancestors)) return this.fail(tabId, 'FRAMES_UNAVAILABLE', operationId);
+    if (!this.isCurrent(tabId, operationId)) return this.getState(tabId);
     const applied = await this.send(tabId, { protocolVersion: PROTOCOL_VERSION, type: 'PREPARE_APPLY',
       requestId: requestId(), operationId, ...target });
     if (!this.isCurrent(tabId, operationId)) {
@@ -92,7 +115,7 @@ export class TabController {
       return this.fail(tabId, reason, operationId, target);
     }
 
-    state = startApply(this.getState(tabId), operationId, target, discovered.closedRoots ? undefined : 'OPEN_ROOTS_ONLY');
+    state = startApply(this.getState(tabId), operationId, target, selection.warning);
     await this.commitState(state);
     const committed = await this.send(tabId, { protocolVersion: PROTOCOL_VERSION, type: 'COMMIT',
       requestId: requestId(), operationId, ...target });
@@ -102,6 +125,12 @@ export class TabController {
       return this.getState(tabId);
     }
 
+    if (!await coordinator.watch(ancestors, true) || !this.isCurrent(tabId, operationId)) {
+      await this.disableTarget(tabId, operationId, target);
+      return this.fail(tabId, 'FRAMES_UNAVAILABLE', operationId, target);
+    }
+    await coordinator.release();
+    if (!this.isCurrent(tabId, operationId)) return this.getState(tabId);
     state = confirmOn(this.getState(tabId), operationId, target);
     await this.commitState(state);
     this.pendingOperations.delete(tabId);
@@ -111,11 +140,11 @@ export class TabController {
   private async disable(tabId: number, reason: OffReason): Promise<TabState> {
     const previous = this.getState(tabId);
     this.pendingOperations.delete(tabId);
+    this.coordinators.get(tabId)?.abort.abort();
     const off = turnOff(previous, reason);
     let failure: unknown;
     try { await this.commitState(off); } catch (error) { failure = error; }
-    if (previous.phase === 'searching') await this.cancel(tabId, previous.operationId);
-    else if (previous.phase !== 'off' && previous.target) await this.disableTarget(tabId, previous.operationId, previous.target);
+    if (previous.phase !== 'off') await this.cancel(tabId, previous.operationId, previous);
     if (failure) throw failure;
     return off;
   }
@@ -127,7 +156,7 @@ export class TabController {
     let failure: unknown;
     try { await this.commitState(off); } catch (error) { failure = error; }
     if (operationId && target) await this.disableTarget(tabId, operationId, target);
-    else if (operationId) await this.cancel(tabId, operationId);
+    if (operationId) await this.cancel(tabId, operationId);
     if (failure) throw failure;
     return off;
   }
@@ -151,13 +180,13 @@ export class TabController {
     const off = turnOff(previous, 'APPLY_FAILED');
     await this.store.set(off).catch(() => undefined);
     await presentState(off).catch(() => undefined);
-    if (previous.phase === 'searching') await this.cancel(tabId, previous.operationId);
-    else if (previous.phase !== 'off' && previous.target) await this.disableTarget(tabId, previous.operationId, previous.target);
+    if (previous.phase !== 'off' && 'target' in previous && previous.target) await this.disableTarget(tabId, previous.operationId, previous.target);
+    if (previous.phase !== 'off') await this.cancel(tabId, previous.operationId, previous);
     return off;
   }
 
   private isCurrent(tabId: number, operationId: string): boolean {
-    return isCurrentOperation(this.getState(tabId), operationId);
+    return isCurrentOperation(this.getState(tabId), operationId) && this.pendingOperations.get(tabId) === operationId;
   }
 
   private matches(response: ContentResponse | undefined, type: 'APPLIED' | 'COMMITTED', operationId: string, target: TargetRef): boolean {
@@ -165,8 +194,20 @@ export class TabController {
       response.documentNonce === target.documentNonce && response.targetId === target.targetId && response.mediaToken === target.mediaToken;
   }
 
-  private async cancel(tabId: number, operationId: string): Promise<void> {
-    await this.send(tabId, { protocolVersion: PROTOCOL_VERSION, type: 'CANCEL_OPERATION', requestId: requestId(), operationId });
+  private async cancel(tabId: number, operationId: string, state?: TabState): Promise<void> {
+    const coordinator = this.coordinators.get(tabId);
+    if (coordinator?.operationId === operationId) {
+      await coordinator.cancel();
+      if (this.coordinators.get(tabId) === coordinator) this.coordinators.delete(tabId);
+    } else {
+      const ids = new Set([0]);
+      if (state && state.phase !== 'off') {
+        if ('target' in state && state.target) ids.add(state.target.frameId);
+        for (const ancestor of state.ancestors ?? []) ids.add(ancestor.parentFrameId);
+      }
+      await Promise.all([...ids].map(frameId => this.send(tabId, { protocolVersion: PROTOCOL_VERSION,
+        type: 'CANCEL_OPERATION', requestId: requestId(), operationId }, frameId)));
+    }
   }
 
   private async disableTarget(tabId: number, operationId: string, target: TargetRef): Promise<void> {
@@ -179,12 +220,13 @@ export class TabController {
     } catch { /* Protected or revoked pages remain safely unavailable. */ }
   }
 
-  private async send(tabId: number, message: ContentRequest): Promise<ContentResponse | undefined> {
+  private async send(tabId: number, message: ContentRequest, frameId = 'frameId' in message ? message.frameId : 0,
+    timeout = RESPONSE_TIMEOUT_MS): Promise<ContentResponse | undefined> {
     let timer: number | undefined;
     try {
       const result = await Promise.race([
-        browser.tabs.sendMessage(tabId, message, { frameId: 0 }),
-        new Promise<undefined>(resolve => { timer = setTimeout(resolve, RESPONSE_TIMEOUT_MS); }),
+        browser.tabs.sendMessage(tabId, message, { frameId }),
+        new Promise<undefined>(resolve => { timer = setTimeout(resolve, timeout); }),
       ]);
       return isContentResponse(result) && result.requestId === message.requestId ? result : undefined;
     } catch { return undefined; }

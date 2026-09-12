@@ -57,6 +57,13 @@ Background получает tabId/frameId/documentId из `runtime.MessageSender
 для активной операции. Payload должен быть ограничен по размерам/количеству элементов.
 На unknown protocol/type — безопасный отказ, не выполнение команды «по похожим полям».
 
+S03 wire contract уточняет bind: BIND_CHILD → BIND_READY, EMIT_BIND → BIND_SENT,
+READ_BIND → BOUND, WATCH_CHILD → WATCHING, COMMIT_WATCH → WATCH_COMMITTED.
+RELEASE_DISCOVERY очищает проигравшие references/binds, сохраняя выбранные watchers.
+FRAME_LOST несёт parent documentNonce, operationId и bind token; controller проверяет
+runtime sender tab/frame по сохранённому ancestors. CANDIDATES содержит visits и frameCount
+вместе с complete/closedRoots; URLs/HTML не передаются. Точные guards — src/shared/protocol.ts.
+
 Пакет не назначает конкретную RPC-библиотеку. Достаточно typed messages и нескольких guards.
 Для поддержки callback/Promise differences сделать один небольшой adapter, протестировать
 свою runtime.onMessage реализацию в обоих браузерах, не смешивать sendResponse и return Promise.

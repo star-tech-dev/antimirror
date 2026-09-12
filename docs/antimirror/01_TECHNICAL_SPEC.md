@@ -171,17 +171,18 @@ Firefox MV3 background не считать Chromium service worker: провер
 
 Команды созданы в S00 (2026-09-12). Зафиксированы Node 24.13.0, pnpm 10.29.2,
 WXT 0.21.4 и TypeScript 5.9.3; остальные точные версии — в package.json/lockfile.
-С S02 обычная сборка поддерживает ручной popup-сценарий с бюджетированным поиском в
-top-document и author open/closed roots. Один кандидат выбирается по fullscreen/видимой
-площади/playback; локальное удаление цели снимает эффект. Frame coordination остаётся за S03.
+С S03 обычная сборка поддерживает поиск по browser frame tree и author open/closed roots.
+Один кандидат выбирается по fullscreen/видимой площади/playback; удаление цели или выбранной
+iframe-цепочки снимает эффект. FrameCoordinator ограничивает concurrency=4, frames=64,
+visits/tab=100k, visits/document=25k и общее поисковое окно 3s.
 
 Feasibility использует отдельные entrypoints в `testing/extension/entrypoints` и `.output-spike`.
 `pnpm build:spike:chrome` / `pnpm build:spike:firefox` включают их через ANTIMIRROR_SPIKE=1;
 обычные builds не содержат тестовых команд. `verify:manifests` проверяет JS/HTML артефакты.
-`pnpm test:e2e:chromium` проверяет production S01–S02, `pnpm test:e2e:feasibility` — S00;
+`pnpm test:e2e:chromium` проверяет production S01–S03, `pnpm test:e2e:feasibility` — S00;
 обе команды сами поднимают fixture-lab. Для `pnpm test:e2e:firefox` и
-`pnpm test:worker-idle` и `pnpm test:discovery:firefox` предварительно запустить
-`pnpm fixtures` с теми же портами. Последняя команда проверяет production content через
-native extension messaging; полный Firefox action-popup flow она не доказывает.
+`pnpm test:worker-idle`, `pnpm test:discovery:firefox`, `pnpm test:frames:firefox` предварительно
+запустить `pnpm fixtures` с теми же портами. Последние две команды проверяют production
+content через native extension messaging; полный Firefox action-popup flow они не доказывают.
 Подробный setup — в README. Native Firefox проверяется Selenium + временный addon,
 Chromium — Playwright, естественный idle — отдельный raw-CDP harness без worker debugger.

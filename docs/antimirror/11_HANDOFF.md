@@ -2,59 +2,64 @@
 
 ## Где остановились · 2026-09-13
 
-S00 `d64a05c`, S01 `0b21080`. S02 DONE; реализация и проверки описаны в
-[S02 evidence](evidence/S02-2026-09-13.md). Следующий слайс — S03.
+S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`. S03 DONE; работа выполнена после S02.
+Подробные факты — [S03 evidence](evidence/S03-2026-09-13.md). Следующий слайс S04.
 
 ## Следующее точное действие
 
-Прочитать `slices/S03_FRAME_COORDINATION.md` и относящиеся к нему разделы
-`02_STATE_AND_PROTOCOL.md`, `04_COMPATIBILITY_PERMISSIONS_SECURITY.md`.
-Подключить frame coordinator: адресация документам, frame ancestry, общие бюджеты вкладки,
-доступные/недоступные frames. Сейчас controller отправляет только в frameId=0,
-и guards TargetRef принимают только 0. Content не обходит iframe DOM.
+Прочитать `slices/S04_LIFECYCLE_RECOVERY.md`, таблицу сбросов и recovery в
+`02_STATE_AND_PROTOCOL.md`. Реализовать наблюдаемый media identity, history/hash fences,
+BFCache/tab lifecycle и GET_TARGET_STATE reconciliation. Recovery должен сверять выбранный
+target и сохранённые ancestor watchers; новое video при recovery не выбирать.
 
-## Реализовано
+## Что работает
 
-DiscoverySession: deadline 3s, slices 4ms, budgets 25k elements/256 roots/32 videos,
-два host-pass и incremental addedNodes. Fresh IO snapshot возвращается после опустошения
-очереди. complete сообщает завершение доступного обхода, closedRoots — capability.
-Background rankCandidates выбирает один video; при open-only добавляет предупреждение.
-Не терять rollback flow PREPARE/APPLIED/COMMIT/COMMITTED и cancel по operation identity.
+FrameCoordinator собирает native frame tree, адресно probe/discover, резервирует бюджеты:
+4 concurrent scans, 64 frames, 25k visits/document и 100k/tab, search 3s. Пустые документы
+имеют bounded фазы около 0/500/1500 ms. Ответ содержит complete/closedRoots/visits/frameCount;
+расхождение DOM iframe count и browser tree даёт ограниченное покрытие, не ложный NO_VIDEO.
 
-watchTargetConnection — один observer на composed ancestor chain без subtree. Он закрывает
-локальные T36–T37: removal/host removal снимают эффект, reparent сохраняет. Это ещё не полный
-TargetSession S04: media identity/history events/watchdog/GET_TARGET_STATE предстоит сделать.
-TARGET_LOST проверяет sender tab/frame и полный operation/document/target/media tuple.
+FrameBindings владеет discovered iframe refs и token binding через узкий postMessage.
+BIND_CHILD → EMIT_BIND → READ_BIND устанавливает source WindowProxy mapping и geometry.
+WATCH_CHILD → COMMIT_WATCH оставляют observers только выбранной цепочки; pending lease 5s,
+вся фаза установки/commit watchers ограничена 1s. Page messages не включают отражение.
+FRAME_LOST проверяется по runtime sender tab/frame и operation/nonce/token из state. Child
+TARGET_LOST теперь принимает произвольный неотрицательный frameId, совпадающий с sender.
 
-В OFF только passive runtime/lifetime handlers; после успеха нет discovery IO/timers,
-остаётся selected-target observer и owned Animation. Pending apply lease живёт до COMMIT.
-Старый CANCEL не удаляет candidates новой попытки. Проигравшие DOM refs очищаются при PREPARE.
+Background остаётся sole state writer и посылает PREPARE_APPLY ровно одной цели. CANCEL
+чистит touched frames; RELEASE_DISCOVERY освобождает проигравшие refs/binds. Native session
+сохраняет target и ancestors без URLs. Worker wake не сбрасывает локальные effects/watchers,
+но reconciliation всё ещё TD02. Navigation выбранного frame/предка сбрасывает ON; unrelated
+ad navigation/removal сохраняет. permissions.onRemoved отменяет pending и активные операции.
 
 ## Проверено
 
-17 unit tests, lint/types, обе production MV3 builds и manifest audit — PASS.
-Chromium 153.0.8010.12: production popup S01 regression + deep discovery, ranking,
-late roots, slot, deletion/reparent, limits, OFF mutation storm и error/deadline cleanup.
-Firefox 155.0.1: production native open/closed/nested/slot/secondary/late-shadow,
-apply/commit/disable и фактические matrices — PASS.
+26 unit tests, lint/types, обе MV3 builds и manifest audit — PASS.
+Chromium 153.0.8010.12: production popup S01–S03, roots/frames, три уровня,
+closed→iframe→closed, about:blank/srcdoc/sandbox, cleanup всех документов, lost ACK,
+PREPARE/navigation race, fallback, frame cap и site access revocation через UI Chrome.
 
-Chromium E2E открывает настоящий action popup через raw CDP. Firefox discovery harness
-использует extension page как отправителя runtime messages и сохраняет target видимым для IO.
-Production test bridge отсутствует.
+Firefox 155.0.1: production native content bind/watch/apply/commit и parent-removal report;
+same/cross/nested/closed-chain/about:blank/srcdoc/blob/data/sandbox — PASS.
+Это не полный Firefox action-popup/controller E2E. Обычная popup.html вкладка не имеет права
+SET_ENABLED: sender.tab guard сохранён. Harness работает через native content protocol.
 
 ## Команды
 
 `pnpm lint`; `pnpm typecheck`; `pnpm test:unit`; `pnpm build:chrome`;
 `pnpm build:firefox`; `pnpm verify:manifests`;
-`FIXTURE_PORT=4273 FIXTURE_FRAME_PORT=4274 pnpm test:e2e:chromium`.
-Для Firefox запустить `FIXTURE_PORT=4373 FIXTURE_FRAME_PORT=4374 pnpm fixtures`, затем
-`FIXTURE_PORT=4373 FIXTURE_FRAME_PORT=4374 pnpm test:discovery:firefox`.
-Browser binaries — .browser-cache; Firefox path задаётся FIREFOX_BINARY.
+`FIXTURE_PORT=4473 FIXTURE_FRAME_PORT=4474 pnpm test:e2e:chromium`.
+Firefox: отдельный `FIXTURE_PORT=4573 FIXTURE_FRAME_PORT=4574 pnpm fixtures`, затем
+`FIXTURE_PORT=4573 FIXTURE_FRAME_PORT=4574 pnpm test:frames:firefox`.
+S02 native roots: `pnpm test:discovery:firefox` с работающим стендом.
+Browser binaries — .browser-cache; Firefox path — FIREFOX_BINARY.
 
-## Не потерять / долг
+## Ограничения / долг
 
-TD02: session state после worker restart требует reconciliation в S04.
-TD03: Chromium native fullscreen самого video даёт TRANSFORM_CONFLICT; fullscreen container
-проходит. Проверку renderer/controls продолжить в S05, не считать весь fullscreen PASS.
-Ручной headed smoke, полный Firefox action-popup flow, реальные сайты/VK и PiP — NOT_RUN.
-Общие frame budgets не реализованы до S03. Budget 4ms cooperative, не hard real-time.
+TD02: full worker recovery и ancestor-watch reconciliation — S04.
+TD03: native fullscreen самого video Chromium возвращает conflict; container fullscreen
+проходит — renderer/controls проверить в S05.
+Blob/data iframe в текущем Chromium отсутствуют в getAllFrames и получают FRAMES_UNAVAILABLE;
+Firefox native related-frame gate проходит. Не обходить это через parent DOM/debugger.
+Ручной smoke, реальные сайты/VK, Firefox popup/site-access UI, Edge/Brave, PiP — NOT_RUN.
+Синхронные browser/layout calls не дают hard real-time гарантии бюджета.

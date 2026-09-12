@@ -73,6 +73,17 @@ postMessage и interferе с геометрией/DOM; token не считать
 поддерживаемый сценарий требует работающего bind/watch на всех доступных предках.
 Нельзя сбрасывать режим при удалении любого произвольного iframe «ради простоты».
 
+S03 (2026-09-13): native parent bind/watch пройден в Chrome 153 и Firefox 155 для
+same/cross-origin, closed→iframe→closed и трёх уровней. about:blank/srcdoc прошли в обоих.
+В Chromium blob/data iframe отсутствовали в getAllFrames; сравнение локального frameCount
+с browser tree даёт FRAMES_UNAVAILABLE, а не NO_VIDEO. В Firefox blob/data/sandbox прошли
+native content protocol. Sandbox сохраняется как есть; запреты браузера не обходятся.
+
+Отзыв host access проверен автоматизацией реального select ON_CLICK в chrome://extensions
+только временного тестового профиля. permissions.onRemoved инвалидирует pending operations,
+переводит активные вкладки в OFF и делает best-effort cleanup. Отдельная ручная Firefox
+проверка site-access UI и полный Firefox action-popup flow не заявлены PASS.
+
 ## Границы trust
 
 - UI-команды принимать только от своего popup/document URL или browser commands handler.

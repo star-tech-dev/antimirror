@@ -25,6 +25,11 @@ export function composedParent(node: Node): Node | null {
 
 export function isEligibleVideo(video: HTMLVideoElement, checkBudget: () => void = () => undefined): boolean {
   if (!video.isConnected || video.error) return false;
+  return isVisibleElement(video, checkBudget);
+}
+
+export function isVisibleElement(video: Element, checkBudget: () => void = () => undefined): boolean {
+  if (!video.isConnected) return false;
   const bounds = video.getBoundingClientRect();
   if (bounds.width < 64 || bounds.height < 36 || bounds.right <= 0 || bounds.bottom <= 0 ||
       bounds.left >= innerWidth || bounds.top >= innerHeight) return false;

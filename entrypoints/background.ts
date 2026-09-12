@@ -1,14 +1,18 @@
 import { defineBackground } from 'wxt/utils/define-background';
 import { browser } from 'wxt/browser';
 import { TabController } from '../src/background/tab-controller';
-import { isUiRequest, isTargetLost } from '../src/shared/protocol';
+import { isUiRequest, isTargetLost, isFrameLost } from '../src/shared/protocol';
 
 export default defineBackground(() => {
   const controller = new TabController();
 
   browser.runtime.onMessage.addListener(async (message: unknown, sender) => {
     await controller.ready;
-    if (isTargetLost(message) && sender.id === browser.runtime.id && sender.tab?.id !== undefined && sender.frameId === 0) {
+    if (isFrameLost(message) && sender.id === browser.runtime.id && sender.tab?.id !== undefined && sender.frameId !== undefined) {
+      await controller.frameLost(sender.tab.id, sender.frameId, message.operationId, message.documentNonce, message.token);
+      return undefined;
+    }
+    if (isTargetLost(message) && sender.id === browser.runtime.id && sender.tab?.id !== undefined && sender.frameId === message.frameId) {
       await controller.targetLost(sender.tab.id, message.operationId, message);
       return undefined;
     }
@@ -22,7 +26,9 @@ export default defineBackground(() => {
   });
 
   browser.webNavigation.onCommitted.addListener(details => {
-    if (details.frameId === 0) void controller.ready.then(() => controller.resetForNavigation(details.tabId)).catch(() => undefined);
+    void controller.resetForNavigation(details.tabId, details.frameId).catch(() => undefined);
+    void controller.ready.then(() => controller.resetForNavigation(details.tabId, details.frameId)).catch(() => undefined);
   });
   browser.tabs.onRemoved.addListener(tabId => { void controller.ready.then(() => controller.remove(tabId)).catch(() => undefined); });
+  browser.permissions.onRemoved.addListener(() => { void controller.ready.then(() => controller.permissionsRevoked()).catch(() => undefined); });
 });

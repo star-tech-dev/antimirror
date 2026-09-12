@@ -1,11 +1,12 @@
-import type { OffReason, TargetRef } from './protocol';
+import { isFrameId, type OffReason, type TargetRef, type FrameBindingRef } from './protocol';
 
 export interface Identity {
   tabId: number;
   operationId: string;
   revision: number;
   topDocumentNonce: string;
-  coverageWarning?: 'OPEN_ROOTS_ONLY';
+  coverageWarning?: 'OPEN_ROOTS_ONLY' | 'FRAMES_UNAVAILABLE';
+  ancestors?: FrameBindingRef[];
 }
 
 export type TabState =
@@ -23,7 +24,7 @@ export function startEnable(state: TabState, operationId: string, topDocumentNon
   return { phase: 'searching', tabId: state.tabId, revision: state.revision + 1, operationId, topDocumentNonce };
 }
 
-export function startApply(state: TabState, operationId: string, target: TargetRef, coverageWarning?: 'OPEN_ROOTS_ONLY'): TabState {
+export function startApply(state: TabState, operationId: string, target: TargetRef, coverageWarning?: Identity['coverageWarning']): TabState {
   if (state.phase !== 'searching' || state.operationId !== operationId) return state;
   return { ...state, phase: 'applying', revision: state.revision + 1, target, ...(coverageWarning ? { coverageWarning } : {}) };
 }
@@ -44,7 +45,10 @@ export function isCurrentOperation(state: TabState, operationId: string): boolea
 export function isTabState(value: unknown): value is TabState {
   if (typeof value !== 'object' || value === null) return false;
   const state = value as Record<string, unknown>;
-  if (state.coverageWarning !== undefined && state.coverageWarning !== 'OPEN_ROOTS_ONLY') return false;
+  if (state.coverageWarning !== undefined && !['OPEN_ROOTS_ONLY', 'FRAMES_UNAVAILABLE'].includes(String(state.coverageWarning))) return false;
+  if (state.ancestors !== undefined && (!Array.isArray(state.ancestors) || state.ancestors.length > 64 ||
+      !state.ancestors.every(item => typeof item === 'object' && item !== null && isFrameId(item.parentFrameId) &&
+        isFrameId(item.childFrameId) && typeof item.parentNonce === 'string' && typeof item.childNonce === 'string' && typeof item.token === 'string'))) return false;
   if (!Number.isSafeInteger(state.tabId) || !Number.isSafeInteger(state.revision) ||
       (state.revision as number) < 0) return false;
   if (state.phase === 'off') return typeof state.reason === 'string';
@@ -54,6 +58,6 @@ export function isTabState(value: unknown): value is TabState {
   if (state.phase === 'disabling' && state.target === undefined) return true;
   if (typeof state.target !== 'object' || state.target === null) return false;
   const target = state.target as Record<string, unknown>;
-  return target.frameId === 0 && typeof target.documentNonce === 'string' &&
+  return isFrameId(target.frameId) && typeof target.documentNonce === 'string' &&
     typeof target.targetId === 'string' && typeof target.mediaToken === 'string';
 }

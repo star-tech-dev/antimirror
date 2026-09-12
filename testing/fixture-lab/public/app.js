@@ -13,6 +13,12 @@ const cases = {
   'frame-same': 'Видео в same-origin iframe; рядом посторонний рекламный iframe.',
   'frame-cross': 'Видео во втором origin (другой порт).',
   'frame-nested': 'Два уровня cross-origin iframe.',
+  'frame-three': 'Три уровня iframe с closed-root video в последнем документе.',
+  'shadow-frame-closed': 'Closed root → cross-origin iframe → closed root.',
+  'frame-blob': 'Related blob iframe.',
+  'frame-data': 'Related data iframe.',
+  'frame-sandbox': 'Sandbox iframe с opaque origin; расширение не меняет sandbox.',
+  'frame-late': 'Iframe появляется во время ручного поиска.',
   'shadow-frame': 'Cross-origin iframe внутри closed shadow root.',
   'frame-hidden': 'Видимое top video и невидимый крупный iframe.',
   'frame-srcdoc': 'Same-origin srcdoc iframe с video.',
@@ -192,6 +198,18 @@ switch (key) {
     else iframe(stage, `${frameOrigin}/child?case=frame-nested&depth=1`);
     break;
   }
+  case 'frame-three': iframe(stage, `${frameOrigin}/child?case=frame-nested`); break;
+  case 'shadow-frame-closed': iframe(shadow(stage, 'closed').root, `${frameOrigin}/child?case=closed`); break;
+  case 'frame-blob': {
+    const url = URL.createObjectURL(new Blob([embeddedHTML('BLOB VIDEO')], {type:'text/html'}));
+    iframe(stage, url); cleanups.add(() => URL.revokeObjectURL(url)); break;
+  }
+  case 'frame-data': iframe(stage, `data:text/html,${encodeURIComponent(embeddedHTML('DATA VIDEO'))}`); break;
+  case 'frame-sandbox': {
+    const frame = document.createElement('iframe'); frame.sandbox = 'allow-scripts';
+    frame.srcdoc = embeddedHTML('SANDBOX VIDEO'); stage.append(frame); frames.push(frame); break;
+  }
+  case 'frame-late': button('Добавить iframe', () => iframe(stage, `${frameOrigin}/child?case=closed`)); break;
   case 'shadow-frame': iframe(shadow(stage, 'closed').root, `${frameOrigin}/child?case=basic`); break;
   case 'frame-hidden': makeVideo(stage, 'VISIBLE MAIN'); iframe(stage, `${frameOrigin}/child?case=basic`, {hidden:true}); break;
   case 'frame-srcdoc': { const frame = iframe(stage, 'about:blank'); frame.srcdoc = embeddedHTML('SRCDOC VIDEO'); break; }

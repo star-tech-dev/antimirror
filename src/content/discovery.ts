@@ -3,7 +3,7 @@ import { candidateScore, type CandidateScore } from './candidates';
 
 export const DISCOVERY_LIMITS = { deadline: 3_000, slice: 4, elements: 25_000, roots: 256, candidates: 32 } as const;
 export interface DiscoveredVideo extends CandidateScore { video: HTMLVideoElement }
-export interface DiscoveryResult { complete: boolean; closedRoots: boolean; candidates: DiscoveredVideo[] }
+export interface DiscoveryResult { complete: boolean; closedRoots: boolean; candidates: DiscoveredVideo[]; frames: HTMLIFrameElement[]; visits: number }
 
 /** Every observer, DOM reference and scheduled task belongs to this single attempt. */
 export class DiscoverySession {
@@ -12,6 +12,7 @@ export class DiscoverySession {
   private readonly observers: MutationObserver[] = [];
   private readonly roots = new Set<Document | ShadowRoot>();
   private readonly videos = new Set<HTMLVideoElement>();
+  private readonly frames = new Set<HTMLIFrameElement>();
   private readonly queue: { node: Node; walker?: TreeWalker }[] = [];
   private readonly additions: Iterator<Node>[] = [];
   private io?: IntersectionObserver;
@@ -24,6 +25,8 @@ export class DiscoverySession {
   private changed = false;
   private closedRoots = false;
 
+  constructor(private readonly durationMs = 3000, private readonly elementLimit = 25000) {}
+
   run(): Promise<DiscoveryResult> {
     return new Promise(resolve => {
       this.resolve = resolve;
@@ -32,7 +35,7 @@ export class DiscoverySession {
       try {
         this.closedRoots = hasNativeShadowAccess();
         this.addRoot(document);
-        this.schedule(() => this.finish(!this.queue.length && !this.additions.length && !this.measuring), DISCOVERY_LIMITS.deadline);
+        this.schedule(() => this.finish(!this.queue.length && !this.additions.length && !this.measuring), this.durationMs);
         for (const delay of [500, 1_500]) this.schedule(() => {
           for (const root of this.roots) this.enqueue(root);
           this.pump();
@@ -76,13 +79,18 @@ export class DiscoverySession {
 
   private visit(element: Element): void {
     if (this.controller.signal.aborted) return;
-    if (++this.visits > DISCOVERY_LIMITS.elements || performance.now() - this.started >= DISCOVERY_LIMITS.deadline) {
+    if (this.visits >= this.elementLimit || performance.now() - this.started >= this.durationMs) {
       this.finish(false); return;
     }
+    this.visits++;
     if (!element.isConnected) return;
     // Late passes revisit hosts, but never count a slotted/light-DOM video twice.
     const shadow = getAccessibleShadowRoot(element);
     if (shadow) this.addRoot(shadow);
+    if (element instanceof HTMLIFrameElement) {
+      if (!this.frames.has(element) && this.frames.size >= 64) { this.finish(false); return; }
+      this.frames.add(element);
+    }
     if (element instanceof HTMLVideoElement && !this.videos.has(element)) {
       if (this.videos.size >= DISCOVERY_LIMITS.candidates) { this.finish(false); return; }
       this.videos.add(element);
@@ -123,7 +131,7 @@ export class DiscoverySession {
 
   private measure(): void {
     for (const video of this.videos) if (!video.isConnected) this.videos.delete(video);
-    if (!this.videos.size) return;
+    if (!this.videos.size) { if (this.frames.size) this.finish(true); return; }
     this.measuring = true;
     this.changed = false;
     this.entries.clear();
@@ -139,7 +147,7 @@ export class DiscoverySession {
   }
 
   private checkDeadline = (): void => {
-    if (performance.now() - this.started >= DISCOVERY_LIMITS.deadline) throw new Error('Discovery deadline');
+    if (performance.now() - this.started >= this.durationMs) throw new Error('Discovery deadline');
   };
 
   private score(): void {
@@ -179,7 +187,8 @@ export class DiscoverySession {
     for (const observer of this.observers) observer.disconnect();
     this.observers.length = 0;
     this.io?.disconnect(); this.io = undefined;
-    this.queue.length = 0; this.additions.length = 0; this.roots.clear(); this.videos.clear(); this.entries.clear();
-    resolve({ complete, closedRoots: this.closedRoots, candidates });
+    const frames = complete ? [...this.frames].filter(frame => frame.isConnected) : [];
+    this.queue.length = 0; this.additions.length = 0; this.roots.clear(); this.videos.clear(); this.entries.clear(); this.frames.clear();
+    resolve({ complete, closedRoots: this.closedRoots, candidates, frames, visits: this.visits });
   }
 }

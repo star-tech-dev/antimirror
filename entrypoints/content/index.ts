@@ -4,6 +4,7 @@ import { createMirrorEffect } from '../../src/content/mirror-effect';
 import { DiscoverySession } from '../../src/content/discovery';
 import { isEligibleVideo } from '../../src/content/candidates';
 import { watchTargetConnection } from '../../src/content/target-connection';
+import { FrameBindings } from '../../src/content/frame-bindings';
 import { PROTOCOL_VERSION, isContentRequest, type CandidateRef, type ContentResponse } from '../../src/shared/protocol';
 
 const AGENT_KEY = '__antiMirrorAgentV1';
@@ -31,6 +32,8 @@ export default defineContentScript({
     let active: ActiveTarget | undefined;
     let discovery: { operationId: string; session: DiscoverySession } | undefined;
     let candidateOperation: string | undefined;
+    let bindings: FrameBindings | undefined;
+    const cancelled = new Set<string>();
 
     const disposeActive = (operationId?: string) => {
       if (!active || (operationId && active.operationId !== operationId)) return;
@@ -47,25 +50,45 @@ export default defineContentScript({
       if (sender.id !== browser.runtime.id || !isContentRequest(message)) return undefined;
       if (message.type === 'PROBE') return { protocolVersion: PROTOCOL_VERSION, type: 'PROBED', requestId: message.requestId, documentNonce };
       if (message.type !== 'CANCEL_OPERATION' && message.documentNonce !== documentNonce) return error(message.requestId, 'STALE_DOCUMENT');
+      if (message.type === 'EMIT_BIND') {
+        if (cancelled.has(message.operationId) || bindings?.operationId !== message.operationId) return error(message.requestId, 'STALE_OPERATION');
+        parent.postMessage({ namespace: 'AntiMirror', type: 'FRAME_BIND', operationId: message.operationId, token: message.token }, '*');
+        return { protocolVersion: 1, type: 'BIND_SENT', requestId: message.requestId,
+          operationId: message.operationId, documentNonce, token: message.token };
+      }
+      if (message.type === 'BIND_CHILD' || message.type === 'READ_BIND' || message.type === 'WATCH_CHILD' || message.type === 'COMMIT_WATCH') {
+        return bindings ? bindings.handle(message) : error(message.requestId, 'STALE_OPERATION');
+      }
+      if (message.type === 'RELEASE_DISCOVERY') {
+        if (candidateOperation === message.operationId) { targets.clear(); candidateOperation = undefined; }
+        if (bindings?.operationId === message.operationId) bindings.release();
+        return { protocolVersion: 1, type: 'RELEASED', requestId: message.requestId, operationId: message.operationId, documentNonce };
+      }
       if (message.type === 'DISCOVER') {
-        if (active) return error(message.requestId, 'STALE_OPERATION');
+        if (active || cancelled.has(message.operationId)) return error(message.requestId, 'STALE_OPERATION');
         discovery?.session.dispose();
+        bindings?.dispose(); bindings = new FrameBindings(message.operationId, documentNonce);
         targets.clear();
         candidateOperation = message.operationId;
-        const session = new DiscoverySession();
+        const session = new DiscoverySession(message.durationMs, message.elementLimit);
         discovery = { operationId: message.operationId, session };
         const result = await session.run();
         if (discovery?.session !== session || candidateOperation !== message.operationId) return error(message.requestId, 'STALE_OPERATION');
         discovery = undefined;
+        bindings.setFrames(result.frames);
         const candidates = result.candidates.map(({ video, ...score }) => {
           const candidate = { targetId: crypto.randomUUID(), mediaToken: crypto.randomUUID(), ...score };
           targets.set(candidate.targetId, { video, mediaToken: candidate.mediaToken });
           return candidate;
         });
         return { protocolVersion: PROTOCOL_VERSION, type: 'CANDIDATES', requestId: message.requestId,
-          operationId: message.operationId, documentNonce, complete: result.complete, closedRoots: result.closedRoots, candidates };
+          operationId: message.operationId, documentNonce, complete: result.complete, closedRoots: result.closedRoots,
+          visits: result.visits, frameCount: result.frames.length, candidates };
       }
       if (message.type === 'CANCEL_OPERATION') {
+        cancelled.add(message.operationId);
+        if (cancelled.size > 64) cancelled.delete(cancelled.values().next().value!);
+        if (bindings?.operationId === message.operationId) { bindings.dispose(); bindings = undefined; }
         disposeActive(message.operationId);
         if (discovery?.operationId === message.operationId) {
           discovery.session.dispose(); discovery = undefined;
@@ -97,7 +120,7 @@ export default defineContentScript({
         active.connection = watchTargetConnection(target.video, () => {
           disposeActive(message.operationId);
           void browser.runtime.sendMessage({ protocolVersion: PROTOCOL_VERSION, type: 'TARGET_LOST',
-            operationId: message.operationId, frameId: 0, documentNonce,
+            operationId: message.operationId, frameId: message.frameId, documentNonce,
             targetId: message.targetId, mediaToken: message.mediaToken }).catch(() => undefined);
         });
         return applied('APPLIED', message.requestId, active, documentNonce);
@@ -108,7 +131,7 @@ export default defineContentScript({
         active.lease = undefined;
         return applied('COMMITTED', message.requestId, active, documentNonce);
       }
-      if (!active || !matches(active, message)) return error(message.requestId, 'STALE_TARGET');
+      if (message.type !== 'DISABLE' || !active || !matches(active, message)) return error(message.requestId, 'STALE_TARGET');
       const response = applied('DISABLED', message.requestId, active, documentNonce);
       disposeActive(message.operationId);
       targets.clear();
@@ -118,6 +141,7 @@ export default defineContentScript({
     const dispose = () => {
       disposeActive();
       discovery?.session.dispose(); discovery = undefined;
+      bindings?.dispose(); bindings = undefined;
       candidateOperation = undefined;
       targets.clear();
       browser.runtime.onMessage.removeListener(listener);

@@ -18,6 +18,7 @@ export class SessionStore {
   }
 
   get(tabId: number): TabState | undefined { return this.states.get(tabId); }
+  list(): TabState[] { return [...this.states.values()]; }
 
   set(state: TabState): Promise<void> {
     this.states.set(state.tabId, state);

@@ -1,7 +1,7 @@
 import { composedParent } from './candidates';
 
 /** Observe only the selected node's ancestor chain, never whole subtrees. */
-export function watchTargetConnection(video: HTMLVideoElement, lost: () => void): { dispose(): void } {
+export function watchTargetConnection(video: Element, lost: () => void): { dispose(): void } {
   let disposed = false;
   const observer = new MutationObserver(() => {
     if (disposed) return;
