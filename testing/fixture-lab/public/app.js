@@ -1,6 +1,7 @@
 /* Test page only. The extension must never read this page's fixture globals. */
 const cases = {
   basic: 'Обычный video и проверки потери/замены источника.',
+  bfcache: 'Статический video без captureStream для настоящего BFCache.',
   open: 'Video внутри открытого shadow root.',
   closed: 'Video внутри закрытого shadow root обычного div.',
   nested: 'Три вложенных shadow roots: open → closed → open.',
@@ -174,6 +175,11 @@ function mutationStorm() {
 }
 
 switch (key) {
+  case 'bfcache': {
+    const figure = document.createElement('figure'); figure.className = 'player';
+    const video = document.createElement('video'); video.controls = true;
+    figure.append(video); stage.append(figure); videos.push(video); break;
+  }
   case 'open': makeVideo(shadow(stage, 'open').root, 'OPEN ROOT'); break;
   case 'closed': makeVideo(shadow(stage, 'closed').root, 'CLOSED ROOT'); break;
   case 'nested': {

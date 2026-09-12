@@ -110,3 +110,19 @@ scenarios прошли. Набор разрешений не расширен.
 Firefox runtime-команда из popup.html, открытого обычной вкладкой, корректно отклоняется UI
 sender guard. Native Firefox harness использует production content protocol напрямую;
 полный controller/UI путь подтверждён Chromium. Production guard ради теста не ослаблялся.
+
+## S04 · 2026-09-13
+
+Target identity сохраняется до PREPARE; адресная reconciliation никогда не выбирает новый
+target и не повторяет COMMIT. Сохранённый applying становится ON только при подтверждённых
+target и ancestor watchers. OFF и pending cleanup записываются атомарно в storage.session;
+повтор CANCEL выполняется при взаимодействии/wake, без фонового polling/alarms.
+
+Same-URL history events сравниваются с временным SHA-256 fingerprint; async comparison
+закрывает commit fence. Raw URLs не сохраняются. Content pagehide сохраняет только пассивный
+dispatcher, чтобы BFCache допускал новое ручное действие без fallback/reinjection.
+
+Для natural idle используется production build и raw CDP без worker debugger. Для discard
+не подключается debugger целевого renderer: Chromium 153 macOS падал при Playwright attachment,
+но raw CDP проходит тот же native discard/restore. BFCache и полный process restart проверены
+отдельно. Подробности и ограничения — S04 evidence; renderer/native controls matrix остаётся S05.

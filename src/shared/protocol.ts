@@ -29,7 +29,7 @@ export interface FrameBindingRef {
 }
 export type BindingRequest = { protocolVersion: 1; requestId: string; operationId: string; documentNonce: string; token: string } & (
   | { type: 'BIND_CHILD'; childFrameId: number; childNonce: string }
-  | { type: 'EMIT_BIND' | 'READ_BIND' | 'WATCH_CHILD' | 'COMMIT_WATCH' }
+  | { type: 'EMIT_BIND' | 'READ_BIND' | 'WATCH_CHILD' | 'COMMIT_WATCH' | 'GET_WATCH_STATE' }
 );
 export type UiRequest =
   | { protocolVersion: 1; type: 'GET_STATE'; tabId: number; requestId: string }
@@ -42,6 +42,7 @@ export type ContentRequest =
   | { protocolVersion: 1; type: 'RELEASE_DISCOVERY'; requestId: string; operationId: string; documentNonce: string }
   | ({ protocolVersion: 1; type: 'PREPARE_APPLY'; requestId: string; operationId: string } & TargetRef)
   | ({ protocolVersion: 1; type: 'COMMIT'; requestId: string; operationId: string } & TargetRef)
+  | ({ protocolVersion: 1; type: 'GET_TARGET_STATE'; requestId: string; operationId: string } & TargetRef)
   | { protocolVersion: 1; type: 'CANCEL_OPERATION'; requestId: string; operationId: string }
   | ({ protocolVersion: 1; type: 'DISABLE'; requestId: string; operationId: string } & TargetRef);
 
@@ -56,18 +57,18 @@ export interface CandidateSnapshot extends CandidateRef {
   fullscreen: boolean;
 }
 
-export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string } & TargetRef;
+export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string; reason?: 'NAVIGATION' } & TargetRef;
 
 export function isTargetLost(value: unknown): value is TargetLost {
   return isRecord(value) && value.protocolVersion === 1 && value.type === 'TARGET_LOST' &&
     isFrameId(value.frameId) && isId(value.operationId) && isId(value.documentNonce) &&
-    isId(value.targetId) && isId(value.mediaToken);
+    isId(value.targetId) && isId(value.mediaToken) && (value.reason === undefined || value.reason === 'NAVIGATION');
 }
 
-export type FrameLost = { protocolVersion: 1; type: 'FRAME_LOST'; operationId: string; documentNonce: string; token: string };
+export type FrameLost = { protocolVersion: 1; type: 'FRAME_LOST'; operationId: string; documentNonce: string; token: string; reason?: 'NAVIGATION' };
 export function isFrameLost(value: unknown): value is FrameLost {
   return isRecord(value) && value.protocolVersion === 1 && value.type === 'FRAME_LOST' &&
-    isId(value.operationId) && isId(value.documentNonce) && isId(value.token);
+    isId(value.operationId) && isId(value.documentNonce) && isId(value.token) && (value.reason === undefined || value.reason === 'NAVIGATION');
 }
 
 export type ContentResponse =
@@ -108,11 +109,11 @@ export function isContentRequest(value: unknown): value is ContentRequest {
     (value.durationMs === undefined || (Number.isInteger(value.durationMs) && (value.durationMs as number) > 0 && (value.durationMs as number) <= 3000)) &&
     (value.elementLimit === undefined || (Number.isInteger(value.elementLimit) && (value.elementLimit as number) > 0 && (value.elementLimit as number) <= 25000));
   if (value.type === 'RELEASE_DISCOVERY') return isId(value.operationId) && isId(value.documentNonce);
-  if (['BIND_CHILD', 'EMIT_BIND', 'READ_BIND', 'WATCH_CHILD', 'COMMIT_WATCH'].includes(String(value.type))) {
+  if (['BIND_CHILD', 'EMIT_BIND', 'READ_BIND', 'WATCH_CHILD', 'COMMIT_WATCH', 'GET_WATCH_STATE'].includes(String(value.type))) {
     return isId(value.operationId) && isId(value.documentNonce) && isId(value.token) &&
       (value.type !== 'BIND_CHILD' || (isFrameId(value.childFrameId) && isId(value.childNonce)));
   }
-  if (!['PREPARE_APPLY', 'COMMIT', 'DISABLE'].includes(String(value.type))) return false;
+  if (!['PREPARE_APPLY', 'COMMIT', 'DISABLE', 'GET_TARGET_STATE'].includes(String(value.type))) return false;
   return isId(value.operationId) && isFrameId(value.frameId) && isId(value.documentNonce) &&
     isId(value.targetId) && isId(value.mediaToken);
 }

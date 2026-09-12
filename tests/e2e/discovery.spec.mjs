@@ -50,7 +50,7 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
       await expect.poll(() => popup.text()).toBe('Видео отражено');
       expect(await counts()).toEqual(scenario === 'secondary' ? [1, 0] : [1]);
       expect((await metrics()).intersections).toBe(0);
-      expect((await metrics()).timers).toBe(0);
+      expect((await metrics()).timers).toBeLessThanOrEqual(1); // Visible selected-target watchdog only.
       await page.screenshot({ path: info.outputPath(`${scenario}-on.png`) });
       // Reparent preserves identity; removing its host must cancel the owned effect.
       await page.evaluate(() => window.__antiMirrorFixture.reparentVideo());

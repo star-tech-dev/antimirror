@@ -5,6 +5,7 @@ export interface Identity {
   operationId: string;
   revision: number;
   topDocumentNonce: string;
+  urlFingerprint?: string;
   coverageWarning?: 'OPEN_ROOTS_ONLY' | 'FRAMES_UNAVAILABLE';
   ancestors?: FrameBindingRef[];
 }
@@ -45,6 +46,7 @@ export function isCurrentOperation(state: TabState, operationId: string): boolea
 export function isTabState(value: unknown): value is TabState {
   if (typeof value !== 'object' || value === null) return false;
   const state = value as Record<string, unknown>;
+  if (state.urlFingerprint !== undefined && (typeof state.urlFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(state.urlFingerprint))) return false;
   if (state.coverageWarning !== undefined && !['OPEN_ROOTS_ONLY', 'FRAMES_UNAVAILABLE'].includes(String(state.coverageWarning))) return false;
   if (state.ancestors !== undefined && (!Array.isArray(state.ancestors) || state.ancestors.length > 64 ||
       !state.ancestors.every(item => typeof item === 'object' && item !== null && isFrameId(item.parentFrameId) &&

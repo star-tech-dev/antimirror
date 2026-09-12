@@ -4,6 +4,7 @@ import { createMirrorEffect } from '../../src/content/mirror-effect';
 import { DiscoverySession } from '../../src/content/discovery';
 import { isEligibleVideo } from '../../src/content/candidates';
 import { watchTargetConnection } from '../../src/content/target-connection';
+import { captureMediaIdentity, watchTargetSession } from '../../src/content/target-session';
 import { FrameBindings } from '../../src/content/frame-bindings';
 import { PROTOCOL_VERSION, isContentRequest, type CandidateRef, type ContentResponse } from '../../src/shared/protocol';
 
@@ -16,6 +17,8 @@ interface ActiveTarget extends CandidateRef {
   handle: { dispose(): void };
   lease?: ReturnType<typeof setTimeout>;
   connection?: { dispose(): void };
+  session?: ReturnType<typeof watchTargetSession>;
+  reportLost?(reason?: 'NAVIGATION'): void;
 }
 
 interface AgentGlobal { dispose(): void }
@@ -28,10 +31,11 @@ export default defineContentScript({
     const root = globalThis as typeof globalThis & { [AGENT_KEY]?: AgentGlobal };
     if (root[AGENT_KEY]) return;
     const documentNonce = crypto.randomUUID();
-    const targets = new Map<string, { video: HTMLVideoElement; mediaToken: string }>();
+    const targets = new Map<string, { video: HTMLVideoElement; mediaToken: string; unchanged(): boolean }>();
     let active: ActiveTarget | undefined;
     let discovery: { operationId: string; session: DiscoverySession } | undefined;
     let candidateOperation: string | undefined;
+    let candidateLease: ReturnType<typeof setTimeout> | undefined;
     let bindings: FrameBindings | undefined;
     const cancelled = new Set<string>();
 
@@ -39,6 +43,7 @@ export default defineContentScript({
       if (!active || (operationId && active.operationId !== operationId)) return;
       if (active.lease) clearTimeout(active.lease);
       active.connection?.dispose();
+      active.session?.dispose();
       active.handle.dispose();
       active = undefined;
     };
@@ -56,11 +61,11 @@ export default defineContentScript({
         return { protocolVersion: 1, type: 'BIND_SENT', requestId: message.requestId,
           operationId: message.operationId, documentNonce, token: message.token };
       }
-      if (message.type === 'BIND_CHILD' || message.type === 'READ_BIND' || message.type === 'WATCH_CHILD' || message.type === 'COMMIT_WATCH') {
+      if (message.type === 'BIND_CHILD' || message.type === 'READ_BIND' || message.type === 'WATCH_CHILD' || message.type === 'COMMIT_WATCH' || message.type === 'GET_WATCH_STATE') {
         return bindings ? bindings.handle(message) : error(message.requestId, 'STALE_OPERATION');
       }
       if (message.type === 'RELEASE_DISCOVERY') {
-        if (candidateOperation === message.operationId) { targets.clear(); candidateOperation = undefined; }
+        if (candidateOperation === message.operationId) { clearTimeout(candidateLease); targets.clear(); candidateOperation = undefined; }
         if (bindings?.operationId === message.operationId) bindings.release();
         return { protocolVersion: 1, type: 'RELEASED', requestId: message.requestId, operationId: message.operationId, documentNonce };
       }
@@ -69,6 +74,7 @@ export default defineContentScript({
         discovery?.session.dispose();
         bindings?.dispose(); bindings = new FrameBindings(message.operationId, documentNonce);
         targets.clear();
+        clearTimeout(candidateLease);
         candidateOperation = message.operationId;
         const session = new DiscoverySession(message.durationMs, message.elementLimit);
         discovery = { operationId: message.operationId, session };
@@ -78,9 +84,10 @@ export default defineContentScript({
         bindings.setFrames(result.frames);
         const candidates = result.candidates.map(({ video, ...score }) => {
           const candidate = { targetId: crypto.randomUUID(), mediaToken: crypto.randomUUID(), ...score };
-          targets.set(candidate.targetId, { video, mediaToken: candidate.mediaToken });
+          targets.set(candidate.targetId, { video, mediaToken: candidate.mediaToken, unchanged: captureMediaIdentity(video) });
           return candidate;
         });
+        candidateLease = setTimeout(() => { targets.clear(); candidateOperation = undefined; }, APPLY_LEASE_MS);
         return { protocolVersion: PROTOCOL_VERSION, type: 'CANDIDATES', requestId: message.requestId,
           operationId: message.operationId, documentNonce, complete: result.complete, closedRoots: result.closedRoots,
           visits: result.visits, frameCount: result.frames.length, candidates };
@@ -93,21 +100,22 @@ export default defineContentScript({
         if (discovery?.operationId === message.operationId) {
           discovery.session.dispose(); discovery = undefined;
         }
-        if (candidateOperation === message.operationId) { targets.clear(); candidateOperation = undefined; }
+        if (candidateOperation === message.operationId) { clearTimeout(candidateLease); targets.clear(); candidateOperation = undefined; }
         return { protocolVersion: PROTOCOL_VERSION, type: 'CANCELLED', requestId: message.requestId,
           operationId: message.operationId, documentNonce };
       }
       if (message.type === 'PREPARE_APPLY') {
-        if (active?.operationId === message.operationId && active.targetId === message.targetId) {
+        if (active && matches(active, message) && active.session?.check()) {
           return applied('APPLIED', message.requestId, active, documentNonce);
         }
         if (active || candidateOperation !== message.operationId) return error(message.requestId, 'STALE_OPERATION');
         const target = targets.get(message.targetId);
-        if (!target || target.mediaToken !== message.mediaToken || !isEligibleVideo(target.video)) {
+        if (!target || target.mediaToken !== message.mediaToken || !target.unchanged() || !isEligibleVideo(target.video)) {
           targets.clear();
           return error(message.requestId, 'STALE_TARGET');
         }
         targets.clear();
+        clearTimeout(candidateLease);
         const before = getComputedStyle(target.video).transform;
         const handle = createMirrorEffect(target.video);
         if (!hasExpectedFlip(before, getComputedStyle(target.video).transform)) {
@@ -117,19 +125,26 @@ export default defineContentScript({
         active = { operationId: message.operationId, targetId: message.targetId,
           mediaToken: message.mediaToken, video: target.video, handle };
         active.lease = setTimeout(() => disposeActive(message.operationId), APPLY_LEASE_MS);
-        active.connection = watchTargetConnection(target.video, () => {
+        const lost = (reason?: 'NAVIGATION') => {
           disposeActive(message.operationId);
           void browser.runtime.sendMessage({ protocolVersion: PROTOCOL_VERSION, type: 'TARGET_LOST',
             operationId: message.operationId, frameId: message.frameId, documentNonce,
-            targetId: message.targetId, mediaToken: message.mediaToken }).catch(() => undefined);
-        });
+            targetId: message.targetId, mediaToken: message.mediaToken, ...(reason ? { reason } : {}) }).catch(() => undefined);
+        };
+        active.reportLost = lost;
+        active.connection = watchTargetConnection(target.video, lost);
+        active.session = watchTargetSession(target.video, handle.healthy, lost);
         return applied('APPLIED', message.requestId, active, documentNonce);
       }
       if (message.type === 'COMMIT') {
-        if (!active || !matches(active, message)) return error(message.requestId, 'STALE_TARGET');
+        if (!active || !matches(active, message) || !active.session?.check()) return error(message.requestId, 'STALE_TARGET');
         if (active.lease) clearTimeout(active.lease);
         active.lease = undefined;
         return applied('COMMITTED', message.requestId, active, documentNonce);
+      }
+      if (message.type === 'GET_TARGET_STATE') {
+        if (!active || !matches(active, message) || !active.session?.check()) return error(message.requestId, 'STALE_TARGET');
+        return applied(active.lease === undefined ? 'COMMITTED' : 'APPLIED', message.requestId, active, documentNonce);
       }
       if (message.type !== 'DISABLE' || !active || !matches(active, message)) return error(message.requestId, 'STALE_TARGET');
       const response = applied('DISABLED', message.requestId, active, documentNonce);
@@ -138,18 +153,28 @@ export default defineContentScript({
       return response;
     };
 
-    const dispose = () => {
+    const suspend = () => {
+      for (const operation of [active?.operationId, discovery?.operationId, bindings?.operationId, candidateOperation]) {
+        if (operation) cancelled.add(operation);
+      }
+      while (cancelled.size > 64) cancelled.delete(cancelled.values().next().value!);
+      active?.reportLost?.('NAVIGATION');
       disposeActive();
       discovery?.session.dispose(); discovery = undefined;
-      bindings?.dispose(); bindings = undefined;
+      bindings?.invalidate(); bindings = undefined;
       candidateOperation = undefined;
+      clearTimeout(candidateLease);
       targets.clear();
+    };
+    const dispose = () => {
+      suspend();
+      removeEventListener('pagehide', suspend);
       browser.runtime.onMessage.removeListener(listener);
       delete root[AGENT_KEY];
     };
     root[AGENT_KEY] = { dispose };
     browser.runtime.onMessage.addListener(listener);
-    addEventListener('pagehide', dispose, { once: true });
+    addEventListener('pagehide', suspend);
     ctx.onInvalidated(dispose);
   },
 });

@@ -51,6 +51,7 @@ Background получает tabId/frameId/documentId из `runtime.MessageSender
 | BG → target/ancestors | `DISABLE` | Убрать принадлежащие расширению ресурсы выбранной сессии |
 | target/ancestor → BG | `INVALIDATED` | Потеря video, media, документа, iframe или эффекта |
 | BG → target | `GET_TARGET_STATE` | Проверка состояния при пробуждении/взаимодействии |
+| BG → ancestor | `GET_WATCH_STATE` | Проверить committed watcher той же operation/document/token |
 | BG ↔ ancestors | `BIND_CHILD` / `WATCH_CHILD` | Привязка и наблюдение нужной цепочки iframe |
 
 У каждого сообщения: protocolVersion=1, type, requestId (когда нужен ответ), operationId
@@ -64,6 +65,12 @@ FRAME_LOST несёт parent documentNonce, operationId и bind token; controlle
 runtime sender tab/frame по сохранённому ancestors. CANDIDATES содержит visits и frameCount
 вместе с complete/closedRoots; URLs/HTML не передаются. Точные guards — src/shared/protocol.ts.
 
+S04: GET_TARGET_STATE возвращает существующий APPLIED либо COMMITTED без создания эффекта;
+GET_WATCH_STATE возвращает WATCH_COMMITTED только у живого подтверждённого watcher.
+TARGET_LOST/FRAME_LOST также несут необязательную ограниченную причину NAVIGATION для
+pagehide: локальный сброс не должен превращать navigation race в ошибку «video удалён».
+Абстрактный INVALIDATED представлен этими двумя wire messages.
+
 Пакет не назначает конкретную RPC-библиотеку. Достаточно typed messages и нескольких guards.
 Для поддержки callback/Promise differences сделать один небольшой adapter, протестировать
 свою runtime.onMessage реализацию в обоих браузерах, не смешивать sendResponse и return Promise.
@@ -76,10 +83,11 @@ runtime sender tab/frame по сохранённому ancestors. CANDIDATES с�
    допускаются только до общего deadline. Иконка пока не ON.
 3. Собирает кандидатов, проверяет coverage, выбирает один; ещё раз проверяет актуальность
    top URL/document и TargetRef. Привязывает iframe-предков.
-4. `PREPARE_APPLY`: content проверяет identity, mediaToken, `isConnected`, пригодность видео;
+4. Background сохраняет `applying` с выбранной целью **до** отправки PREPARE, чтобы recovery
+   знал адрес потенциального эффекта даже при потере первого ответа.
+   `PREPARE_APPLY`: content проверяет identity, mediaToken, `isConnected`, пригодность видео;
    создаёт reversible handle и одноразовый pending timeout. Возвращает `APPLIED`.
-5. Background проверяет, что за время ожидания не было OFF/navigation, сохраняет `applying`
-   с подготовленной целью и посылает `COMMIT`.
+5. Background проверяет APPLIED и отсутствие OFF/navigation, затем посылает `COMMIT`.
 6. Content подтверждает ту же операцию, отменяет pending timeout и возвращает `COMMITTED`.
 7. Background повторно проверяет revision/operationId, сохраняет `on`, затем обновляет
    tab-specific action. Popup получает подтверждённое состояние.
@@ -176,3 +184,30 @@ operationId, targetId, mediaToken и реальный handle — сохрани�
 
 Не держать worker искусственно живым через ports, ping каждые несколько секунд или alarms.
 Снятие эффекта при локальной потере цели должно работать до и независимо от ответа background.
+
+## Реализованные границы S04
+
+SessionStore атомарно записывает OFF и старую identity в `antimirror.cleanup.v1` рядом с
+`antimirror.tabs.v1`. CANCEL подтверждается адресно; отсутствие frame в native tree также
+завершает cleanup. При недоставке запись остаётся до следующего popup/действия/worker wake;
+новое включение ждёт её очистки. Это session-only служебная запись, а не сохранённый enabled.
+Ошибка первоначального чтения storage не подменяется пустой успешной инициализацией:
+popup получает ошибку чтения, новые команды не выполняются до успешного нового boot.
+
+Recovery проверяет существующую вкладку, top nonce, SHA-256 отпечаток URL, полный target tuple,
+committed handle и все сохранённые ancestor tokens. Сохранённый applying может стать ON
+только если target и watchers уже committed; иначе отменяется, COMMIT повторно не отправляется.
+Открытие popup повторяет адресную проверку ON. URL fingerprints не являются анонимизацией;
+исходные URL и media identity не сериализуются.
+
+History/fragment comparisons упорядочены per-tab; PREPARE, COMMIT и non-OFF state writes
+дожидаются всех текущих сравнений. Новый user intent отделяет старые async failures и ответы.
+Committed navigation синхронно снимает operation fence, не ожидая discovery/storage.
+
+Content сверяет media snapshot перед PREPARE, после него наблюдает только source-атрибуты
+выбранного video и его локальные media events. O(1) watchdog раз в секунду проверяет
+currentSrc/src/srcObject, connection и принадлежность Animation. В hidden document polling
+приостановлен, visibilitychange выполняет одну проверку. pagehide очищает сессии и tombstones
+старые операции, но сохраняет пассивный dispatcher для нового ручного действия после BFCache.
+Compatibility matrix, runtime CSS conflicts и PiP уточняются в S05; эта проверка handle
+не доказывает визуальную поддержку всех native-player режимов.

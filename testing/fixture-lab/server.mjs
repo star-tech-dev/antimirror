@@ -53,7 +53,7 @@ for (const port of [mainPort, framePort]) {
         const [filename, contentType] = assets.get(url.pathname);
         body = await readFile(path.join(base, filename)); type = contentType;
       } else { res.writeHead(404); res.end('Not found'); return; }
-      const headers = { 'Content-Type': type, 'Cache-Control': 'no-store',
+      const headers = { 'Content-Type': type, 'Cache-Control': url.searchParams.get('case') === 'bfcache' ? 'private, max-age=0' : 'no-store',
         'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' };
       if (url.searchParams.get('case') === 'strict-csp') {
         headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; style-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'none'";

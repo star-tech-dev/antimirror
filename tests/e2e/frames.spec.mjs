@@ -93,7 +93,9 @@ test('S03 production frame selection, binding, navigation and security', async (
       const m=globalThis.frameResources; return {mo:m.mo,io:m.io,timers:m.timers.size,messages:m.messages.size};
     }})).map(result=>result.result), resourceTab);
     popup=await openPopup(page); await popup.click(); await expect.poll(()=>popup.text()).toBe('Видео отражено');
-    expect((await resources()).every(m=>m.io===0 && m.timers===0 && m.messages===0)).toBe(true);
+    const activeResources = await resources();
+    expect(activeResources.every(m=>m.io===0 && m.messages===0)).toBe(true);
+    expect(activeResources.reduce((sum,m)=>sum+m.timers,0)).toBeLessThanOrEqual(1);
     await popup.click(); await expect.poll(async()=> (await resources()).every(m=>Object.values(m).every(n=>n===0))).toBe(true);
     console.log('all-frame OFF resources', await resources()); await popup.close();
 

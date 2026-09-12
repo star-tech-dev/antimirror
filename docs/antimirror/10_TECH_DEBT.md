@@ -1,15 +1,16 @@
 # 10. Технический долг
 
-Обновлено после S03, 2026-09-13.
+Обновлено после S04, 2026-09-13.
 
 | ID | Severity | Конкретная проблема | Evidence | Почему отложено | Исправление / слайс | Статус |
 |---|---|---|---|---|---|---|
 | TD01 | Medium | `createMirrorEffect` сам не диагностирует conflict | S01 caller сравнивает фактическую матрицу до APPLIED и делает rollback | Ownership оставлен у content session, primitive остаётся малым | S05 расширяет compatibility matrix, но базовый дефект закрыт | CLOSED |
-| TD02 | High | После пробуждения background загруженный `on/applying` state пока не сверяется через `GET_TARGET_STATE` | `SessionStore.load`; протокол recovery ещё не реализован | Полный recovery и mismatch policy принадлежат S04; S01 E2E не перезапускает worker | S04: адресная reconciliation и action repair | OPEN |
+| TD02 | High | Recovery должен сверять target и ancestor watchers | S04: GET_TARGET_STATE/GET_WATCH_STATE, transitional records, pending cleanup; production natural idle + unchanged target/op/ON icon PASS | Реализовано в S04 | Адресная reconciliation без discovery, retry cleanup перед новым ON | CLOSED |
 | TD03 | Medium | Native fullscreen самого video в Chromium не принимает текущий additive transform; включение возвращает TRANSFORM_CONFLICT | S02 production E2E, Chrome 153.0.8010.12; fullscreen figure проходит | Выбор цели S02 работает; rendering compatibility относится к S05. Ошибка не скрывается ложным ON | S05: исследовать безопасный backend/ограничение native fullscreen, проверить Firefox и controls | OPEN |
 
-S03 расширил TD02: recovery должен сверять не только TargetRef, но и сохранённые ancestor
-watchers. Обычный worker sleep не очищает их, однако forced-restart reconciliation ещё нет.
+S04 закрыл TD02 реальным natural idle gate; Firefox full recovery пока verification gap.
+S05 должен также проверить runtime CSS priority conflicts и PiP: S04 диагностирует утрату
+собственного Animation, но это не универсальный тест фактической картинки при любом cascade.
 Chrome blob/data frame-tree limitation описан в coverage/evidence как capability boundary,
 не как обещанная поддержка. Firefox popup/site-access manual остаются verification gaps.
 

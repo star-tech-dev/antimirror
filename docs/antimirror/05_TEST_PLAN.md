@@ -21,6 +21,15 @@ Playwright Firefox page-test не доказывает установленно�
 проверять его отсутствие в release manifest и не публиковать production debug-command API.
 Реальные пользовательские gesture/toolbar проверки остаются отдельным manual gate.
 
+S04 harness: `pnpm test:recovery-idle` использует production build и raw CDP только к страницам,
+проверяя естественную остановку worker после 40 секунд без его debugger/keepalive.
+`pnpm test:discard` проверяет реальный discard без debugger целевого renderer: Chrome 153
+macOS падает при discard страницы, подключённой к Playwright. Это не обход production permissions.
+`pnpm test:browser-restart` перезапускает собственный временный browser profile.
+Для всех трёх команд заранее запустить `pnpm fixtures` с теми же FIXTURE_PORT/FIXTURE_FRAME_PORT.
+Настоящий BFCache входит в lifecycle.spec: отключён только Playwright-флаг запрета BFCache,
+проверяется pageshow.persisted=true; при back ожидается commit, поскольку нового load нет.
+
 ## Основные сценарии
 
 | ID | Сценарий | Обязательный ожидаемый результат | Уровень |

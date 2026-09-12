@@ -1,7 +1,7 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S03 завершён.
-**Следующий слайс:** S04, lifecycle и MV3 recovery.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S04 завершён.
+**Следующий слайс:** S05, UX, хоткей и compatibility matrix.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
@@ -9,7 +9,7 @@
 | S01 Первый вертикальный сценарий | DONE | [S01 evidence](evidence/S01-2026-09-12.md) | Production popup E2E Chromium |
 | S02 Deep discovery | DONE | [S02 evidence](evidence/S02-2026-09-13.md) | Production Chromium + Firefox native roots; budgets/cleanup |
 | S03 Frame coordination | DONE | [S03 evidence](evidence/S03-2026-09-13.md) | Chromium full flow + Firefox native frame bind/watch |
-| S04 Lifecycle + recovery | TODO | — | — |
+| S04 Lifecycle + recovery | DONE | [S04 evidence](evidence/S04-2026-09-13.md) | Media/URL reset, real BFCache/discard/browser restart, natural idle recovery |
 | S05 UX + compatibility polish | TODO | — | — |
 | S06 Hardening + performance | TODO | — | — |
 | S07 Release candidate | TODO | — | — |
@@ -24,6 +24,15 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S04: media/session ownership, history/hash fences, BFCache-safe dispatcher, native tab lifecycle,
+GET_TARGET_STATE/GET_WATCH_STATE reconciliation и persistent pending cleanup. Same URL/пауза/
+sync reparent сохраняют ON. 37 unit tests, lint/types, обе MV3 builds, manifest audit — PASS.
+Chromium S01–S04 (4 specs), real BFCache, raw-CDP discard/full browser restart и настоящий
+natural worker idle — PASS. Firefox native frame regression — PASS, full Firefox popup/recovery
+и реальные сайты — NOT_RUN. TD02 закрыт; TD03 и compatibility проверки переходят в S05.
+
+## Предыдущий запуск S03
 
 S03: сбор кандидатов по browser frame tree, адресный fallback, native parent bind/watch,
 общие budgets (4 concurrent scans / 64 frames / 100k visits / 3s), выбранная ancestor chain

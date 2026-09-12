@@ -42,6 +42,9 @@ export class FrameBindings {
       return geometry ? { ...common, type: 'BOUND', ...geometry } : error();
     }
     if (!binding.frame?.isConnected) return error();
+    if (message.type === 'GET_WATCH_STATE') {
+      return binding.watch && binding.timer === undefined ? { ...common, type: 'WATCH_COMMITTED' } : error();
+    }
     if (message.type === 'WATCH_CHILD') {
       if (!binding.watch) {
         clearTimeout(binding.timer);
@@ -71,6 +74,14 @@ export class FrameBindings {
     for (const token of this.bindings.keys()) this.drop(token);
     this.frames = [];
     removeEventListener('message', this.onMessage);
+  }
+
+  invalidate(): void {
+    for (const [token, binding] of this.bindings) if (binding.watch) {
+      void browser.runtime.sendMessage({ protocolVersion: 1, type: 'FRAME_LOST',
+        operationId: this.operationId, documentNonce: this.nonce, token, reason: 'NAVIGATION' }).catch(() => undefined);
+    }
+    this.dispose();
   }
 
   private drop(token: string): void {
