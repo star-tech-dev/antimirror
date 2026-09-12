@@ -1,0 +1,37 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101522; color: #edf1fa; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1 { font-size: clamp(22px, 4vw, 34px); margin: 6px 0 12px; }
+p { line-height: 1.55; }
+.eyebrow { color: #8cacff; font-size: 11px; font-weight: 750; letter-spacing: .18em; }
+#description, footer { color: #adb9ce; }
+label { display: inline-flex; align-items: center; gap: 12px; }
+button, select { font: inherit; color: inherit; border: 1px solid #485775; border-radius: 8px; background: #202b41; padding: 9px 12px; }
+button { cursor: pointer; }
+button:hover { background: #304160; }
+button:focus-visible, select:focus-visible { outline: 3px solid #93b4ff; outline-offset: 3px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+#status { padding: 10px 14px; border-left: 3px solid #799efc; background: #192236; font-size: 13px; min-height: 42px; }
+#stage { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+.player { width: min(100%, 800px); margin: 0; }
+.player video, video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 9px; }
+.player.small { width: 220px; }
+.player.equal { width: min(46%, 480px); }
+figcaption { color: #b4c0d6; padding: 10px 0; font-size: 13px; }
+.shadow-host { display: block; width: min(100%, 800px); }
+iframe { width: min(100%, 880px); height: 550px; border: 1px solid #485775; border-radius: 10px; background: #101522; }
+iframe.ad { width: 200px; height: 150px; }
+iframe.hidden-frame { display: none; width: 2000px; height: 1800px; }
+.transformed { transform: translateX(18px) rotate(3deg) scale(.9); backface-visibility: hidden; }
+.important-transform { transform: translateX(12px) !important; }
+.origin-corner { transform-origin: 0 0; }
+.rotate-site { animation: site-motion 1.8s ease-in-out infinite alternate; }
+@keyframes site-motion { from { transform: translateX(0) rotate(-2deg); } to { transform: translateX(18px) rotate(2deg); } }
+footer { margin: 30px 0 0; font-size: 12px; }
+body.compact main { padding: 10px; }
+body.compact header, body.compact footer, body.compact .controls { display: none; }
+body.compact #status { font-size: 11px; margin: 0 0 8px; padding: 6px; }
+body.compact iframe { height: 440px; }
+canvas { max-width: 100%; }
+.noise { display: none; }

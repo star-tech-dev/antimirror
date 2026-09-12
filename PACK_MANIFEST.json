@@ -1,0 +1,193 @@
+{
+  "package": "antimirror-codex-pack",
+  "revision": "2026-09-11",
+  "status": "design-and-fixture-lab-not-production-extension",
+  "sliceCount": 8,
+  "testCaseCount": 70,
+  "fixtureCaseCount": 23,
+  "localMarkdownLinksChecked": 101,
+  "hashAlgorithm": "SHA-256",
+  "inventoryNote": "This file is excluded from its own file inventory.",
+  "files": [
+    {
+      "path": ".agents/skills/antimirror-implement-slice/SKILL.md",
+      "bytes": 1404,
+      "sha256": "708249accd1f6e6f079cf279ec7585baae746c3b5d6f841d006f38480f606691"
+    },
+    {
+      "path": ".agents/skills/antimirror-review/SKILL.md",
+      "bytes": 1117,
+      "sha256": "f2a0552c69e4769b2a838d1e623002fed737a786f1cc3bd0fc09f1341ad928b0"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 4887,
+      "sha256": "51ef845053368e610ad869e057c51b913f272a3902753b66f6aac0a3b22746c6"
+    },
+    {
+      "path": "CONTINUE_CODEX.md",
+      "bytes": 755,
+      "sha256": "56cd3a173601bf6f8d7a76e20cfbe93add1dd0ff91be11a4080378cd146b743b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5946,
+      "sha256": "718da835230845c7749154ee830b3bcab7fc12e96af94423c7a16f38cdd465a1"
+    },
+    {
+      "path": "REVIEW_CODEX.md",
+      "bytes": 1306,
+      "sha256": "70808ba677bfa807614df8fc14fdb96e5c3a27c0bc0b7a01539dff4822e08fc9"
+    },
+    {
+      "path": "START_CODEX.md",
+      "bytes": 2168,
+      "sha256": "6a3b111ed97cea653ad471a0b7d5145131c983cd89fab1d5f2f1c5ba886d3f8f"
+    },
+    {
+      "path": "docs/antimirror/00_PRODUCT.md",
+      "bytes": 10318,
+      "sha256": "70f2cd3e657cb5d006bcebefe18a8f472bdb562e0dcee2e3886832824f8300ec"
+    },
+    {
+      "path": "docs/antimirror/01_TECHNICAL_SPEC.md",
+      "bytes": 10963,
+      "sha256": "4b1252598147a3dec4f1032e18f33a8d85099a3b2c11bcc7045427381915e8c0"
+    },
+    {
+      "path": "docs/antimirror/02_STATE_AND_PROTOCOL.md",
+      "bytes": 16153,
+      "sha256": "14fdca39d0efef68c361a7ba993993611b38d53ff3ee7150bdb021127227d7b1"
+    },
+    {
+      "path": "docs/antimirror/03_DISCOVERY_AND_RENDERING.md",
+      "bytes": 15860,
+      "sha256": "ecdc1b4d80b1a5f8a72967e756f763105e3725bfd1a19ad5d239c2c4eee3a9c6"
+    },
+    {
+      "path": "docs/antimirror/04_COMPATIBILITY_PERMISSIONS_SECURITY.md",
+      "bytes": 12113,
+      "sha256": "1b11b1eaa1013f7b49317a5c960e05baec2eeb730bf491b718ec55e4fbdf3b73"
+    },
+    {
+      "path": "docs/antimirror/05_TEST_PLAN.md",
+      "bytes": 15010,
+      "sha256": "8ca89c6c8b784076e192ccd57f749205356b27676354090d9c37aad9e0c88366"
+    },
+    {
+      "path": "docs/antimirror/06_RELEASE.md",
+      "bytes": 6450,
+      "sha256": "d8be9d0ca1aaa2ebfcb84c33a97460389e770a3b611df726a6a5334bb62b9b24"
+    },
+    {
+      "path": "docs/antimirror/07_DECISIONS.md",
+      "bytes": 5068,
+      "sha256": "fac3d5b0fff944cb82b3224cbaa91c60bd7a4df1c35d4f09d626c631c6e431a5"
+    },
+    {
+      "path": "docs/antimirror/08_SOURCES.md",
+      "bytes": 9529,
+      "sha256": "290c1ed89e80cceecff6ce4e9ca3da4b04aa73e1b81ce049caa8aeab64dafd34"
+    },
+    {
+      "path": "docs/antimirror/09_PROGRESS.md",
+      "bytes": 1864,
+      "sha256": "fc5a529f7b894b3ba16b672582adc1607a42c8a96629ac1a2665f2117aa295f5"
+    },
+    {
+      "path": "docs/antimirror/10_TECH_DEBT.md",
+      "bytes": 1085,
+      "sha256": "a9c3cc3e460a07362bbeba12109ee8f784b0ca1fec4024a78c075e179b87f771"
+    },
+    {
+      "path": "docs/antimirror/11_HANDOFF.md",
+      "bytes": 2196,
+      "sha256": "f220fe24624e1afef26f6804eb65c0f8f898d1bec4de60e5db7f0920ecb2c9ef"
+    },
+    {
+      "path": "docs/antimirror/12_RISKS_AND_VALIDATION.md",
+      "bytes": 4155,
+      "sha256": "60628d5052ddb4bc4a468479cf58c01ee6d61a844ad43f4ba8145f57bb68da4d"
+    },
+    {
+      "path": "docs/antimirror/ai/WORKFLOW.md",
+      "bytes": 4181,
+      "sha256": "eb77219e491aca4838c2d6ebaae85d3a71a826ff35ad1bcf75c8f31d09332624"
+    },
+    {
+      "path": "docs/antimirror/slices/README.md",
+      "bytes": 2765,
+      "sha256": "f9d825ef2c4df47ad245086a801ba95eba6697800074e2a65213d460bf069c04"
+    },
+    {
+      "path": "docs/antimirror/slices/S00_FOUNDATION.md",
+      "bytes": 2732,
+      "sha256": "695ea003faa69d82faea93f2e046bd4a158cea258d33454a95cd3fe3e5c5393b"
+    },
+    {
+      "path": "docs/antimirror/slices/S01_VERTICAL_SLICE.md",
+      "bytes": 2566,
+      "sha256": "373890e792a8e82ad765c0246dd62e8ad7d0379b43e161e140c24560ba2624ce"
+    },
+    {
+      "path": "docs/antimirror/slices/S02_DEEP_DISCOVERY.md",
+      "bytes": 2439,
+      "sha256": "0915ce23b16e8685bc635696bd6db4a27a6dc4a44558a52caaaff55a4f1b5398"
+    },
+    {
+      "path": "docs/antimirror/slices/S03_FRAME_COORDINATION.md",
+      "bytes": 2374,
+      "sha256": "752f866fd9c2f42660fa70f216f1bca75530fa9022e6558694213661338b3322"
+    },
+    {
+      "path": "docs/antimirror/slices/S04_LIFECYCLE_RECOVERY.md",
+      "bytes": 2219,
+      "sha256": "cbff92ad3cc4eb5310629442afc374f9ec91a04cdabefd67b09f33e329b040a3"
+    },
+    {
+      "path": "docs/antimirror/slices/S05_UX_COMPATIBILITY.md",
+      "bytes": 2443,
+      "sha256": "dba33d4d6d7071f769ddd43ce53ebd2a45aa373a6b5efbf0d104f92adad5ba7d"
+    },
+    {
+      "path": "docs/antimirror/slices/S06_HARDENING.md",
+      "bytes": 2471,
+      "sha256": "9628fb0e5786652332cdb9e3b9ca6b38f148d344ec52f33317182ea982a7739a"
+    },
+    {
+      "path": "docs/antimirror/slices/S07_RELEASE_CANDIDATE.md",
+      "bytes": 2282,
+      "sha256": "ce2dd2615947d9df35de1228b3dc04893ff06f4d7c54d58e636c8a764c16f07d"
+    },
+    {
+      "path": "testing/fixture-lab/README.md",
+      "bytes": 6378,
+      "sha256": "14221b7660fc082d6667ef81532f6c04d6f95fb41664b4a236b278a894673c8d"
+    },
+    {
+      "path": "testing/fixture-lab/public/app.js",
+      "bytes": 15831,
+      "sha256": "5da5df256993cc36b1e06470a190ddbd5c53369fc9fd693dc31d023482dc4db5"
+    },
+    {
+      "path": "testing/fixture-lab/public/styles.css",
+      "bytes": 2395,
+      "sha256": "c7acbca90852e9e74c027c7106971aa39755e302c5d434e3e82135e301b5b6dd"
+    },
+    {
+      "path": "testing/fixture-lab/server.mjs",
+      "bytes": 4157,
+      "sha256": "81882433899066659810ef15a4f53aa0d02892989b1e876e3eedf95eb5218714"
+    },
+    {
+      "path": "verification/PACK_CHECKS.md",
+      "bytes": 4533,
+      "sha256": "95f0bfede2a6e74063a9e4b94a2aca7d047a476423e2e2c07aef7ce747292df5"
+    },
+    {
+      "path": "verification/fixture_smoke_results.json",
+      "bytes": 7593,
+      "sha256": "2354a8621c8fc2b779cd166f8f3271982dd9fe2f7b1547015959f0aad5be0b94"
+    }
+  ]
+}

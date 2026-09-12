@@ -1,0 +1,381 @@
+{
+  "scope": "HTTP endpoint checks + isolated about:blank DOM smoke. NOT live HTTP browser coverage or extension E2E.",
+  "http": [
+    {
+      "test": "health port 57131",
+      "status": "PASS"
+    },
+    {
+      "test": "health port 36637",
+      "status": "PASS"
+    },
+    {
+      "test": "/app.js",
+      "status": "PASS"
+    },
+    {
+      "test": "/styles.css",
+      "status": "PASS"
+    },
+    {
+      "test": "/",
+      "status": "PASS"
+    },
+    {
+      "test": "/child?case=basic",
+      "status": "PASS"
+    },
+    {
+      "test": "strict-csp response header",
+      "status": "PASS"
+    },
+    {
+      "test": "/../server.mjs is not served",
+      "status": "PASS"
+    },
+    {
+      "test": "/missing is not served",
+      "status": "PASS"
+    },
+    {
+      "test": "/%2e%2e/server.mjs is not served",
+      "status": "PASS"
+    }
+  ],
+  "dom": [
+    {
+      "case": "basic",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "open",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "ShadowRoot"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "closed",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "ShadowRoot"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "nested",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "ShadowRoot"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "late-shadow",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "ShadowRoot"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "slot",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "multiple",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            },
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "secondary",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            },
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "no-video",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": []
+        }
+      ]
+    },
+    {
+      "case": "canvas-only",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": []
+        }
+      ]
+    },
+    {
+      "case": "frame-srcdoc",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": []
+        },
+        {
+          "url": "about:srcdoc",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "frame-blank",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": []
+        },
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "transforms",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "site-animation",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "important",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "origin-corner",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "mutations",
+      "status": "PASS",
+      "errors": [],
+      "media": [
+        {
+          "url": "about:blank",
+          "videos": [
+            {
+              "connected": true,
+              "ready": 4,
+              "width": 640,
+              "rootType": "HTMLDocument"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "probes": [
+    {
+      "name": "page-context additive constant effect",
+      "before": "matrix(0.9, 0, 0, 0.9, 12, 0)",
+      "on": "matrix(-0.9, 0, 0, 0.9, 12, 0)",
+      "after": "matrix(0.9, 0, 0, 0.9, 12, 0)",
+      "playState": "paused",
+      "inlinePreserved": true,
+      "restored": true,
+      "flipped": true
+    }
+  ],
+  "notRun": [
+    "Live localhost browser: ERR_BLOCKED_BY_ADMINISTRATOR",
+    "True cross-origin and CSP enforcement",
+    "Extension privileged closed-root getter",
+    "Actual product extension",
+    "Firefox",
+    "VK/live sites"
+  ],
+  "browser": "Chromium 144.0.7559.96",
+  "serverStderr": ""
+}
