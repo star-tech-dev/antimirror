@@ -1,6 +1,7 @@
 {
-  "extensionName": { "message": "AntiMirror" },
-  "extensionDescription": { "message": "Manually mirror one selected video in the current tab." },
+  "extensionName": { "message": "AntiMirror — Video Flip" },
+  "extensionNameShort": { "message": "AntiMirror" },
+  "extensionDescription": { "message": "Flip one mirrored video horizontally in the current tab — manually, privately, and without changing player controls." },
   "commandDescription": { "message": "Toggle mirroring for the active tab" },
   "checking": { "message": "Checking status…" },
   "waiting": { "message": "Please wait…" },
@@ -30,5 +31,8 @@
   "warningOpenRoots": { "message": "Closed components could not be inspected" },
   "warningFrames": { "message": "Some embedded pages are unavailable" },
   "shortcutAssigned": { "message": "Shortcut: $SHORTCUT$", "placeholders": { "shortcut": { "content": "$1" } } },
-  "shortcutUnassigned": { "message": "Shortcut is not assigned. Set it in the browser’s extension shortcut settings." }
+  "shortcutUnassigned": { "message": "Shortcut is not assigned. Set it in the browser’s extension shortcut settings." },
+  "languageLabel": { "message": "Popup language" },
+  "languageEnglish": { "message": "EN" },
+  "languageRussian": { "message": "RU" }
 }

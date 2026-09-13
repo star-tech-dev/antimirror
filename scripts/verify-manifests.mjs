@@ -11,12 +11,15 @@ for (const target of ['chrome', 'firefox']) {
   assert.ok(m.action.default_popup);
   assert.equal(m.action.default_icon['16'], 'icons/off-16.png');
   assert.deepEqual(m.icons, {
-    16: 'icons/off-16.png', 32: 'icons/off-32.png', 48: 'icons/off-48.png', 128: 'icons/off-128.png',
+    16: 'icons/brand-16.png', 32: 'icons/brand-32.png', 48: 'icons/brand-48.png', 128: 'icons/brand-128.png',
   });
+  assert.equal(m.version, '1.0.0');
+  assert.equal(m.homepage_url, 'https://star-tech.dev/');
   assert.equal(m.action.default_title, 'AntiMirror');
   assert.deepEqual(m.commands['toggle-mirror'].suggested_key, { default: 'Alt+Shift+M', mac: 'MacCtrl+Shift+M' });
   assert.equal(m.commands['toggle-mirror'].description, '__MSG_commandDescription__');
   assert.deepEqual(m.browser_specific_settings.gecko.data_collection_permissions.required, ['none']);
+  assert.equal(m.browser_specific_settings.gecko.id, 'antimirror@star-tech.dev');
   if (target === 'chrome') assert.ok(m.background.service_worker);
   else { assert.ok(m.background.scripts?.length); assert.equal(m.background.service_worker, undefined); }
   assert.equal(m.content_scripts.length, 1);
@@ -34,8 +37,8 @@ for (const target of ['chrome', 'firefox']) {
   assert.equal(m.externally_connectable, undefined);
   const en = JSON.parse(await readFile(`${base}/_locales/en/messages.json`, 'utf8'));
   const ru = JSON.parse(await readFile(`${base}/_locales/ru/messages.json`, 'utf8'));
-  for (const key of ['extensionName', 'extensionDescription', 'commandDescription', 'off', 'on',
-    'reasonPermission', 'reasonPip', 'shortcutAssigned', 'shortcutUnassigned']) {
+  for (const key of ['extensionName', 'extensionNameShort', 'extensionDescription', 'commandDescription', 'off', 'on',
+    'reasonPermission', 'reasonPip', 'shortcutAssigned', 'shortcutUnassigned', 'languageLabel']) {
     assert.ok(en[key]?.message); assert.ok(ru[key]?.message);
   }
   assert.notEqual(en.off.message, ru.off.message);

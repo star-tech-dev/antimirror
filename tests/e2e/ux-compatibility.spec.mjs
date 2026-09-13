@@ -26,9 +26,19 @@ test('S05 popup, shortcut and renderer compatibility', async ({ baseURL }) => {
     let popup = await openPopup(page);
     expect(await popup.evaluate('document.documentElement.lang')).toBe('en');
     expect(await popup.evaluate('document.querySelectorAll("button").length')).toBe(1);
+    expect(await popup.evaluate('document.querySelectorAll("select").length')).toBe(1);
+    expect(await popup.evaluate('document.querySelector("#language").getAttribute("title")')).toBe('Popup language');
     expect(await popup.evaluate('document.querySelector("#status").getAttribute("aria-live")')).toBe('polite');
     expect(await popup.evaluate('document.querySelector("#toggle").getAttribute("aria-describedby")')).toBe('shortcut');
     expect(await popup.evaluate('document.querySelector("#shortcut").textContent')).toContain(command.shortcut);
+    await popup.evaluate(`const select=document.querySelector('#language');select.value='ru';select.dispatchEvent(new Event('change',{bubbles:true}))`);
+    await expect.poll(() => popup.text()).toBe('Выключено');
+    await popup.close();
+    popup = await openPopup(page);
+    expect(await popup.evaluate('document.documentElement.lang')).toBe('ru');
+    expect(await popup.evaluate('document.querySelector("#toggle").textContent')).toBe('Включить');
+    await popup.evaluate(`const select=document.querySelector('#language');select.value='en';select.dispatchEvent(new Event('change',{bubbles:true}))`);
+    await expect.poll(() => popup.text()).toBe('Off');
     await popup.close();
 
     await load('transforms');

@@ -8,7 +8,7 @@ const binary = await download('0.36.0', path.resolve('.browser-cache/geckodriver
 const uuid = 'cae27e88-642f-46f1-8e87-13b627e42b50';
 const options = new firefox.Options().setBinary(process.env.FIREFOX_BINARY ?? '/Applications/Firefox.app/Contents/MacOS/firefox')
   .addArguments('-headless', '-no-remote', '--remote-allow-system-access')
-  .setPreference('extensions.webextensions.uuids', JSON.stringify({ 'antimirror@local.invalid': uuid }));
+  .setPreference('extensions.webextensions.uuids', JSON.stringify({ 'antimirror@star-tech.dev': uuid }));
 const driver = await new Builder().forBrowser('firefox').setFirefoxOptions(options)
   .setFirefoxService(new firefox.ServiceBuilder(binary)).build();
 try {

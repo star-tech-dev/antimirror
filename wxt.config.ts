@@ -13,7 +13,7 @@ export default defineConfig({
   manifest: {
     name: spike ? 'AntiMirror Feasibility (TEST ONLY)' : '__MSG_extensionName__',
     default_locale: 'en',
-    icons: { 16: 'icons/off-16.png', 32: 'icons/off-32.png', 48: 'icons/off-48.png', 128: 'icons/off-128.png' },
+    icons: { 16: 'icons/brand-16.png', 32: 'icons/brand-32.png', 48: 'icons/brand-48.png', 128: 'icons/brand-128.png' },
     action: { default_icon: { 16: 'icons/off-16.png', 32: 'icons/off-32.png' }, default_title: spike ? 'AntiMirror — OFF' : 'AntiMirror' },
     description: spike ? 'Test-only AntiMirror capability probe.' : '__MSG_extensionDescription__',
     commands: spike ? undefined : {
@@ -24,6 +24,7 @@ export default defineConfig({
     },
     permissions: ['storage', 'webNavigation', 'scripting'],
     host_permissions: ['http://*/*', 'https://*/*'],
-    browser_specific_settings: { gecko: { id: 'antimirror@local.invalid', strict_min_version: '140.0', data_collection_permissions: { required: ['none'] } } },
+    homepage_url: spike ? undefined : 'https://star-tech.dev/',
+    browser_specific_settings: { gecko: { id: 'antimirror@star-tech.dev', strict_min_version: '140.0', data_collection_permissions: { required: ['none'] } } },
   },
 });

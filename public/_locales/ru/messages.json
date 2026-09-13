@@ -1,6 +1,7 @@
 {
-  "extensionName": { "message": "AntiMirror" },
-  "extensionDescription": { "message": "Вручную отражает одно выбранное видео в текущей вкладке." },
+  "extensionName": { "message": "AntiMirror — Отразить видео" },
+  "extensionNameShort": { "message": "AntiMirror" },
+  "extensionDescription": { "message": "Исправляет зеркальное видео в текущей вкладке — вручную, приватно и без отражения элементов плеера." },
   "commandDescription": { "message": "Включить или выключить отражение в активной вкладке" },
   "checking": { "message": "Проверка состояния…" },
   "waiting": { "message": "Подождите…" },
@@ -30,5 +31,8 @@
   "warningOpenRoots": { "message": "Поиск внутри закрытых компонентов недоступен" },
   "warningFrames": { "message": "Часть вложенных страниц недоступна" },
   "shortcutAssigned": { "message": "Сочетание клавиш: $SHORTCUT$", "placeholders": { "shortcut": { "content": "$1" } } },
-  "shortcutUnassigned": { "message": "Сочетание клавиш не назначено. Задайте его в настройках расширений браузера." }
+  "shortcutUnassigned": { "message": "Сочетание клавиш не назначено. Задайте его в настройках расширений браузера." },
+  "languageLabel": { "message": "Язык popup" },
+  "languageEnglish": { "message": "EN" },
+  "languageRussian": { "message": "RU" }
 }

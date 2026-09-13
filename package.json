@@ -1,6 +1,6 @@
 {
   "name": "antimirror",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.29.2",
@@ -22,6 +22,7 @@
     "zip:chrome": "wxt zip -b chrome --mv3",
     "zip:firefox": "wxt zip -b firefox --mv3 --sources",
     "verify:release": "node scripts/verify-release.mjs",
+    "generate:brand-assets": "PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/generate-brand-assets.mjs",
     "build:spike:chrome": "ANTIMIRROR_SPIKE=1 wxt build -b chrome --mv3",
     "build:spike:firefox": "ANTIMIRROR_SPIKE=1 wxt build -b firefox --mv3",
     "verify:manifests": "node scripts/verify-manifests.mjs",
