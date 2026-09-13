@@ -4,12 +4,15 @@ for (const target of ['chrome', 'firefox']) {
   const base = `.output/${target}-mv3`;
   const m = JSON.parse(await readFile(`${base}/manifest.json`, 'utf8'));
   assert.equal(m.manifest_version, 3);
-  assert.equal(m.name, 'AntiMirror');
+  assert.equal(m.name, '__MSG_extensionName__');
+  assert.equal(m.default_locale, 'en');
   assert.deepEqual([...m.permissions].sort(), ['scripting', 'storage', 'webNavigation']);
   assert.deepEqual(m.host_permissions, ['http://*/*', 'https://*/*']);
   assert.ok(m.action.default_popup);
   assert.equal(m.action.default_icon['16'], 'icons/off-16.png');
-  assert.equal(m.action.default_title, 'AntiMirror — OFF');
+  assert.equal(m.action.default_title, 'AntiMirror');
+  assert.deepEqual(m.commands['toggle-mirror'].suggested_key, { default: 'Alt+Shift+M', mac: 'MacCtrl+Shift+M' });
+  assert.equal(m.commands['toggle-mirror'].description, '__MSG_commandDescription__');
   assert.deepEqual(m.browser_specific_settings.gecko.data_collection_permissions.required, ['none']);
   if (target === 'chrome') assert.ok(m.background.service_worker);
   else { assert.ok(m.background.scripts?.length); assert.equal(m.background.service_worker, undefined); }
@@ -26,5 +29,12 @@ for (const target of ['chrome', 'firefox']) {
     assert.doesNotMatch(code, /SPIKE_|127\.0\.0\.1|__antiMirrorFixture|TEST ONLY/);
   }
   assert.equal(m.externally_connectable, undefined);
+  const en = JSON.parse(await readFile(`${base}/_locales/en/messages.json`, 'utf8'));
+  const ru = JSON.parse(await readFile(`${base}/_locales/ru/messages.json`, 'utf8'));
+  for (const key of ['extensionName', 'extensionDescription', 'commandDescription', 'off', 'on',
+    'reasonPermission', 'reasonPip', 'shortcutAssigned', 'shortcutUnassigned']) {
+    assert.ok(en[key]?.message); assert.ok(ru[key]?.message);
+  }
+  assert.notEqual(en.off.message, ru.off.message);
   console.log(`${target}: MV3, passive injection flags, background and no spike endpoints PASS`);
 }

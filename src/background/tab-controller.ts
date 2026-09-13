@@ -101,7 +101,7 @@ export class TabController {
   async permissionsRevoked(): Promise<void> {
     this.pendingOperations.clear();
     for (const coordinator of this.coordinators.values()) coordinator.abort.abort();
-    await Promise.all(this.store.list().filter(state => state.phase !== 'off').map(state => this.disable(state.tabId, 'FRAMES_UNAVAILABLE')));
+    await Promise.all(this.store.list().filter(state => state.phase !== 'off').map(state => this.disable(state.tabId, 'PERMISSION_DENIED')));
   }
 
   setEnabled(tabId: number, desired: boolean, id: string): Promise<TabState> {

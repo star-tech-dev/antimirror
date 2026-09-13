@@ -5,8 +5,8 @@ import { popupHarness } from './popup-helper.mjs';
 test('S03 production frame selection, binding, navigation and security', async ({ baseURL }, info) => {
   test.setTimeout(120_000);
   const extension = path.resolve('.output/chrome-mv3');
-  const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true,
-    args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
+  const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, locale: 'en-US',
+    args: ['--lang=en', `--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
     const openPopup = popupHarness(context, worker);
@@ -27,7 +27,7 @@ test('S03 production frame selection, binding, navigation and security', async (
       await expect.poll(async () => (await videos()).length).toBeGreaterThan(0);
       if (scenario === 'frame-three') await expect.poll(() => page.frames().length).toBe(4);
       const popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toBe('Видео отражено');
+      await expect.poll(() => popup.text()).toBe('Video mirrored');
       expect((await videos()).filter(v => v.count === 1)).toHaveLength(1);
       const on = await state(popup);
       expect(on.phase).toBe('on');
@@ -54,7 +54,7 @@ test('S03 production frame selection, binding, navigation and security', async (
     for (const scenario of ['frame-blob', 'frame-data', 'frame-sandbox']) {
       await page.goto(`${baseURL}/?case=${scenario}`); await page.waitForTimeout(200);
       const popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toMatch(/Видео отражено|Не удалось получить доступ к вложенному плееру|Не удалось полностью проверить страницу/);
+      await expect.poll(() => popup.text()).toMatch(/Video mirrored|Could not access the embedded player|Could not completely inspect this page/);
       const current = await state(popup);
       console.log(scenario, current.phase, current.reason ?? 'native supported');
       if (current.phase === 'on') { expect((await videos()).filter(v => v.count === 1)).toHaveLength(1); await popup.click(); }
@@ -66,7 +66,7 @@ test('S03 production frame selection, binding, navigation and security', async (
     let popup = await openPopup(page); await popup.click();
     await page.waitForTimeout(100);
     await page.getByRole('button', { name: 'Добавить iframe', exact: true }).evaluate(el => el.click());
-    await expect.poll(() => popup.text()).toBe('Видео отражено');
+    await expect.poll(() => popup.text()).toBe('Video mirrored');
     await popup.click(); await popup.close();
 
     await page.goto(`${baseURL}/?case=frame-cross&resources=1`);
@@ -92,7 +92,7 @@ test('S03 production frame selection, binding, navigation and security', async (
     const resources = () => worker.evaluate(async id => (await chrome.scripting.executeScript({target:{tabId:id,allFrames:true},func:()=>{
       const m=globalThis.frameResources; return {mo:m.mo,io:m.io,timers:m.timers.size,messages:m.messages.size};
     }})).map(result=>result.result), resourceTab);
-    popup=await openPopup(page); await popup.click(); await expect.poll(()=>popup.text()).toBe('Видео отражено');
+    popup=await openPopup(page); await popup.click(); await expect.poll(()=>popup.text()).toBe('Video mirrored');
     const activeResources = await resources();
     expect(activeResources.every(m=>m.io===0 && m.messages===0)).toBe(true);
     expect(activeResources.reduce((sum,m)=>sum+m.timers,0)).toBeLessThanOrEqual(1);
@@ -131,7 +131,7 @@ test('S03 production frame selection, binding, navigation and security', async (
       await chrome.scripting.executeScript({ target:{tabId:tab.id, allFrames:true}, func:() => globalThis.__antiMirrorAgentV1?.dispose() });
     }, page.url());
     popup = await openPopup(page); await popup.click();
-    await expect.poll(() => popup.text()).toBe('Видео отражено'); await popup.click(); await popup.close();
+    await expect.poll(() => popup.text()).toBe('Video mirrored'); await popup.click(); await popup.close();
 
     await page.goto(`${baseURL}/?case=frame-cross`);
     await page.waitForTimeout(100);
@@ -141,7 +141,7 @@ test('S03 production frame selection, binding, navigation and security', async (
     });
     expect((await videos()).every(v => v.count === 0)).toBe(true);
     popup = await openPopup(page); await popup.click();
-    await expect.poll(() => popup.text()).toBe('Видео отражено');
+    await expect.poll(() => popup.text()).toBe('Video mirrored');
     const on = await state(popup);
     await worker.evaluate(async ({ id, target }) => chrome.tabs.sendMessage(id, {
       protocolVersion: 1, type: 'DISABLE', requestId: 'forged', operationId: 'old', ...target,
@@ -153,18 +153,20 @@ test('S03 production frame selection, binding, navigation and security', async (
     await page.evaluate(() => { for (let i = 0; i < 65; i++) { const frame = document.createElement('iframe'); frame.src = 'about:blank'; document.body.append(frame); } });
     await expect.poll(() => page.frames().length).toBe(66);
     popup = await openPopup(page); await popup.click();
-    await expect.poll(() => popup.text()).toBe('Не удалось полностью проверить страницу'); await popup.close();
+    await expect.poll(() => popup.text()).toBe('Could not completely inspect this page'); await popup.close();
     await page.goto(`${baseURL}/?case=frame-cross&revoke=1`);
     await expect.poll(async () => (await videos()).length).toBe(1);
     popup = await openPopup(page); await popup.click();
-    await expect.poll(() => popup.text()).toBe('Видео отражено');
+    await expect.poll(() => popup.text()).toBe('Video mirrored');
     const revokedId = (await state(popup)).tabId;
     const extensionId = worker.url().split('/')[2];
     await popup.close();
     const settings = await context.newPage(); await settings.goto(`chrome://extensions/?id=${extensionId}`);
     await settings.locator('select#hostAccess').selectOption('ON_CLICK');
     await page.bringToFront(); popup = await openPopup(page);
-    await expect.poll(() => popup.evaluate(`chrome.runtime.sendMessage({protocolVersion:1,type:'GET_STATE',tabId:${revokedId},requestId:crypto.randomUUID()}).then(state=>state.phase)`)).toBe('off');
+    await expect.poll(() => popup.evaluate(`chrome.runtime.sendMessage({protocolVersion:1,type:'GET_STATE',tabId:${revokedId},requestId:crypto.randomUUID()})`))
+      .toMatchObject({ phase: 'off', reason: 'PERMISSION_DENIED' });
+    await expect.poll(() => popup.text()).toBe('Site access is unavailable. Allow access and reload the page');
     await expect.poll(async () => (await videos()).every(v => v.count === 0)).toBe(true);
     console.log('host permissions revoked: OFF PASS'); await popup.close();
     console.log('S03 Chromium', context.browser()?.version(), 'frames/bind/cleanup PASS');

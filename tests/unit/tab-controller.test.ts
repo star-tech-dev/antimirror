@@ -198,7 +198,7 @@ describe('TabController failures', () => {
     const applies = mocks.sendMessage.mock.calls.filter(([, message]) => message.type === 'PREPARE_APPLY');
     expect(applies).toHaveLength(1); expect(applies[0]![2]).toEqual({ frameId: 1 });
     await controller.permissionsRevoked();
-    expect(controller.getState(3)).toMatchObject({phase:'off', reason:'FRAMES_UNAVAILABLE'});
+    expect(controller.getState(3)).toMatchObject({phase:'off', reason:'PERMISSION_DENIED'});
     expect(new Set(mocks.sendMessage.mock.calls.filter(([, message]) => message.type === 'CANCEL_OPERATION').map(call => call[2].frameId))).toEqual(new Set([0, 1]));
   });
 

@@ -12,6 +12,7 @@ const discardMode = process.env.ANTIMIRROR_LIFECYCLE === 'discard';
 const restartMode = process.env.ANTIMIRROR_LIFECYCLE === 'restart';
 const extension = path.resolve('.output/chrome-mv3');
 const launch = (extra = []) => spawn(chromium.executablePath(), ['--headless=new', '--no-first-run',
+  '--lang=ru',
   '--window-size=1280,900', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
   '--disable-backgrounding-occluded-windows',
   `--user-data-dir=${profile}`, '--remote-debugging-port=0',
@@ -84,7 +85,7 @@ try {
   await waitFor(async () => (await snapshot()).length >= 1, 'fixture media');
   let popup = await openPopup();
   await popup.evaluate('document.querySelector("#toggle").click()');
-  await waitFor(async () => (await popup.evaluate('document.querySelector("#status").textContent')) === 'Видео отражено', 'ON')
+  await waitFor(async () => ['Видео отражено', 'Video mirrored'].includes(await popup.evaluate('document.querySelector("#status").textContent')), 'ON')
     .catch(async error => { console.log('Failed ON:', await popup.evaluate('document.body.textContent'), await state(), await snapshot()); throw error; });
   const before = await state();
   assert.equal(before.phase, 'on');
@@ -141,7 +142,7 @@ try {
   assert.ok(!(await send('Target.getTargets')).targetInfos.some(t => t.targetId === worker.targetId), 'Original worker naturally stopped');
   assert.deepEqual(await snapshot(), original);
   popup = await openPopup(); // GET_STATE wakes the production worker and reconciles.
-  assert.equal(await popup.evaluate('document.querySelector("#status").textContent'), 'Видео отражено');
+  assert.ok(['Видео отражено', 'Video mirrored'].includes(await popup.evaluate('document.querySelector("#status").textContent')));
   const after = await state();
   assert.equal(after.phase, 'on');
   assert.equal(after.operationId, before.operationId);

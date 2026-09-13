@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isContentRequest, isContentResponse, isUiRequest } from '../../src/shared/protocol';
+import { isContentRequest, isContentResponse, isTargetLost, isUiRequest } from '../../src/shared/protocol';
 
 describe('protocol runtime guards', () => {
   it('accepts only versioned bounded UI messages', () => {
@@ -27,5 +27,14 @@ describe('protocol runtime guards', () => {
     const discover = { protocolVersion:1, type:'DISCOVER', requestId:'r', operationId:'o', documentNonce:'d' };
     expect(isContentRequest({ ...discover, durationMs:3001 })).toBe(false);
     expect(isContentRequest({ ...discover, elementLimit:25001 })).toBe(false);
+  });
+
+  it('accepts only declared target-loss reasons', () => {
+    const lost = { protocolVersion: 1, type: 'TARGET_LOST', operationId: 'o', frameId: 0,
+      documentNonce: 'd', targetId: 't', mediaToken: 'm' };
+    expect(isTargetLost({ ...lost, reason: 'MEDIA_CHANGED' })).toBe(true);
+    expect(isTargetLost({ ...lost, reason: 'PIP_UNSUPPORTED' })).toBe(true);
+    expect(isTargetLost({ ...lost, reason: 'UNKNOWN' })).toBe(false);
+    expect(isTargetLost({ ...lost, reason: { toString: () => 'NAVIGATION' } })).toBe(false);
   });
 });

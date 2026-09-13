@@ -2,16 +2,28 @@
 
 ## Где остановились · 2026-09-13
 
-S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`, S03 `935e413`.
-S04 DONE; подробности — [S04 evidence](evidence/S04-2026-09-13.md).
-Следующий слайс S05: компактный popup, локализация, hotkey и renderer compatibility.
+S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`, S03 `935e413`, S04 `3b26990`.
+S05 implementation и Chrome/VK gates готовы; подробности —
+[S05 evidence](evidence/S05-2026-09-13.md). Слайс остаётся IN_PROGRESS из-за Firefox manual gate.
 
 ## Следующее точное действие
 
-Прочитать `slices/S05_UX_COMPATIBILITY.md`, TD03 и rendering/permissions/test matrix.
-Реализовать browser command, русские/английские статусы и keyboard/a11y; затем исследовать
-native fullscreen video и runtime CSS conflicts. Пройти доступный manual Chrome/Firefox
-и реальный VK smoke, честно фиксируя отсутствие доступа/NOT_RUN. Один слайс за запуск.
+В изолированном Firefox вручную проверить настоящий toolbar popup/shortcut, native fullscreen
+controls и русскую UI locale. CUA не смог подключиться к Selenium-окну (`timeoutReached`),
+поэтому использовать другой доступный headed harness или повторить на машине с доступным UI.
+Если дефектов нет, закрыть TD03 и S05; S06 до этого не начинать.
+
+## Что добавил текущий S05
+
+Popup имеет одну toggle-control, a11y состояния и EN/RU native catalogs. Он показывает реальное
+назначение browser command либо явную unassigned-подсказку. Background синхронно регистрирует
+trusted `toggle-mirror` и переключает только активную вкладку через TabController.
+
+Lifecycle reports теперь различают MEDIA_CHANGED, PLAYBACK_ENDED, PIP_UNSUPPORTED и EFFECT_LOST;
+permissions revoke даёт PERMISSION_DENIED. Chromium matrix проверяет additive transforms,
+`!important` conflict, site animation, current inline style после OFF, origin/backface, controls,
+external overlay, PiP и fullscreen. Firefox production harness проверяет i18n/command declaration
+и четыре renderer cases. Chrome physical shortcut и реальный публичный VK player прошли.
 
 ## Что добавил S04
 
@@ -65,8 +77,7 @@ debugger: Chrome 153 macOS падал при discard Playwright-attached стр�
 
 ## Ограничения / долг
 
-TD02 CLOSED. TD03 OPEN: native fullscreen video Chromium отклоняет текущий additive flip;
-fullscreen figure проходит. Полную runtime CSS/native controls/PiP matrix выполнить в S05.
-Media reset пока имеет общий русский TARGET_LOST текст — уточнить reason/status coverage S05.
-Реальные сайты/VK, Firefox popup/recovery/site-access UI, Edge/Brave и manual controls — NOT_RUN.
+TD02 CLOSED. TD03 OPEN только до Firefox manual fullscreen/control gate: Chromium native
+fullscreen video безопасно отклоняется, fullscreen figure проходит; renderer/PiP matrix готова.
+Firefox toolbar/RU UI, full recovery/site-access UI, Edge/Brave — NOT_RUN.
 Natural idle, BFCache и browser restart были автоматизированными browser gates, не manual smoke.

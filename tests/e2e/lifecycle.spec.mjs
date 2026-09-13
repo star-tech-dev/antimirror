@@ -5,9 +5,9 @@ import { popupHarness } from './popup-helper.mjs';
 test('S04 production media, URL and page lifecycle', async ({ baseURL }) => {
   test.setTimeout(90_000);
   const extension = path.resolve('.output/chrome-mv3');
-  const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true,
+  const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, locale: 'en-US',
     ignoreDefaultArgs: ['--disable-back-forward-cache'],
-    args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
+    args: ['--lang=en', `--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
     const openPopup = popupHarness(context, worker);
@@ -19,13 +19,15 @@ test('S04 production media, URL and page lifecycle', async ({ baseURL }) => {
     };
     const enable = async () => {
       const popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toBe('Видео отражено'); await popup.close();
+      await expect.poll(() => popup.text()).toBe('Video mirrored'); await popup.close();
       expect(await count()).toBe(1);
     };
-    const assertOff = async () => {
+    const assertOff = async expectedReason => {
       await expect.poll(count).toBe(0);
       const popup = await openPopup(page);
       expect(await popup.evaluate('document.querySelector("#toggle").getAttribute("aria-pressed")')).toBe('false');
+      if (expectedReason) expect(await popup.evaluate(`chrome.tabs.query({active:true,currentWindow:true}).then(([tab]) =>
+        chrome.runtime.sendMessage({protocolVersion:1,type:'GET_STATE',tabId:tab.id,requestId:crypto.randomUUID()})).then(state=>state.reason)`)).toBe(expectedReason);
       await popup.close();
     };
     await load(); await enable();
@@ -42,12 +44,12 @@ test('S04 production media, URL and page lifecycle', async ({ baseURL }) => {
         if (change === 'hash') location.hash = 'changed';
         else window.history[change === 'push' ? 'pushState' : 'replaceState']({}, '', location.href + '&changed=1');
       }, change);
-      await assertOff();
+      await assertOff('NAVIGATION');
     }
     for (const event of ['ended', 'error', 'emptied', 'loadstart']) {
       await load(); await enable();
       await page.evaluate(event => window.__antiMirrorFixture.first().dispatchEvent(new window.Event(event)), event);
-      await assertOff();
+      await assertOff(['ended', 'error'].includes(event) ? 'PLAYBACK_ENDED' : 'MEDIA_CHANGED');
     }
     for (const change of ['srcObject', 'src', 'source', 'animation']) {
       await load(); await enable();
@@ -58,7 +60,7 @@ test('S04 production media, URL and page lifecycle', async ({ baseURL }) => {
         if (change === 'source') video.append(document.createElement('source'));
         if (change === 'animation') video.getAnimations().forEach(animation => animation.cancel());
       }, change);
-      await assertOff();
+      await assertOff(change === 'animation' ? 'EFFECT_LOST' : 'MEDIA_CHANGED');
     }
     // Exercise the actual lifecycle handler and retained dispatcher; real BFCache is a separate gate.
     await load(); await enable();

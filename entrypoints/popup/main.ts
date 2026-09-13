@@ -5,32 +5,40 @@ import type { TabState } from '../../src/shared/state';
 
 const buttonElement = document.querySelector<HTMLButtonElement>('#toggle');
 const statusElement = document.querySelector<HTMLElement>('#status');
+const shortcutElement = document.querySelector<HTMLElement>('#shortcut');
 let state: TabState | undefined;
 
-if (!buttonElement || !statusElement) throw new Error('Popup markup is incomplete');
+if (!buttonElement || !statusElement || !shortcutElement) throw new Error('Popup markup is incomplete');
 const button = buttonElement;
 const status = statusElement;
+const shortcut = shortcutElement;
+const getMessage = browser.i18n.getMessage as (key: string, substitutions?: string | string[]) => string;
+const t = (key: string, substitutions?: string | string[]) => getMessage(key, substitutions) || key;
+document.documentElement.lang = browser.i18n.getUILanguage().split('-')[0] ?? 'en';
+document.title = t('extensionName');
+document.querySelector('h1')!.textContent = t('extensionName');
+status.textContent = t('checking');
+button.textContent = t('waiting');
 const [active] = await browser.tabs.query({ active: true, currentWindow: true });
 const tabId = active?.id;
 
 const messages: Record<string, string> = {
-  INITIAL: 'Выключено', USER: 'Выключено', NO_VIDEO: 'Подходящее видео не найдено',
-  AMBIGUOUS_TARGET: 'Найдено несколько видео. Разверните нужное в fullscreen и повторите', NAVIGATION: 'Выключено после загрузки страницы',
-  INCOMPLETE_COVERAGE: 'Не удалось полностью проверить страницу', TARGET_LOST: 'Выключено: видео удалено',
-  FRAMES_UNAVAILABLE: 'Не удалось получить доступ к вложенному плееру',
-  AGENT_UNAVAILABLE: 'Страница недоступна. Обновите её и попробуйте снова',
-  APPLY_FAILED: 'Не удалось применить отражение', TRANSFORM_CONFLICT: 'Стили страницы мешают отражению',
+  INITIAL: 'off', USER: 'off', NO_VIDEO: 'reasonNoVideo', AMBIGUOUS_TARGET: 'reasonAmbiguous',
+  NAVIGATION: 'reasonNavigation', INCOMPLETE_COVERAGE: 'reasonIncomplete', TARGET_LOST: 'reasonTargetLost',
+  MEDIA_CHANGED: 'reasonMediaChanged', PLAYBACK_ENDED: 'reasonPlaybackEnded', PIP_UNSUPPORTED: 'reasonPip',
+  EFFECT_LOST: 'reasonEffectLost', FRAMES_UNAVAILABLE: 'reasonFrames', PERMISSION_DENIED: 'reasonPermission',
+  AGENT_UNAVAILABLE: 'reasonAgent', APPLY_FAILED: 'reasonApply', TRANSFORM_CONFLICT: 'reasonConflict',
 };
 
 function render(next?: TabState): void {
   state = next;
-  if (!next) { status.textContent = 'Не удалось прочитать состояние'; button.disabled = true; return; }
+  if (!next) { status.textContent = t('stateReadFailed'); button.disabled = true; return; }
   const busy = next.phase === 'searching' || next.phase === 'applying' || next.phase === 'disabling';
-  status.textContent = next.phase === 'on' ? 'Видео отражено' : next.phase === 'off'
-    ? messages[next.reason] ?? 'Выключено' : next.phase === 'searching' ? 'Поиск видео…' : 'Применение…';
-  if (next.phase === 'on' && next.coverageWarning) status.textContent += next.coverageWarning === 'OPEN_ROOTS_ONLY'
-    ? '. Поиск внутри закрытых компонентов недоступен' : '. Часть вложенных страниц недоступна';
-  button.textContent = next.phase === 'on' ? 'Выключить' : busy ? 'Отменить' : 'Включить';
+  status.textContent = next.phase === 'on' ? t('on') : next.phase === 'off'
+    ? t(messages[next.reason] ?? 'off') : next.phase === 'searching' ? t('searching') : t('applying');
+  if (next.phase === 'on' && next.coverageWarning) status.textContent += `. ${t(next.coverageWarning === 'OPEN_ROOTS_ONLY'
+    ? 'warningOpenRoots' : 'warningFrames')}`;
+  button.textContent = next.phase === 'on' ? t('turnOff') : busy ? t('cancel') : t('turnOn');
   button.disabled = tabId === undefined;
   button.setAttribute('aria-pressed', String(next.phase === 'on'));
 }
@@ -48,8 +56,12 @@ button.addEventListener('click', async () => {
   if (desired === undefined) return;
   if (desired) render({ phase: 'searching', tabId: tabId!, revision: state!.revision + 1,
     operationId: 'pending-ui', topDocumentNonce: 'pending-ui' });
-  else button.textContent = 'Выключение…';
+  else button.textContent = t('turningOff');
   render(await send('SET_ENABLED', desired));
 });
 
+try {
+  const command = (await browser.commands.getAll()).find(item => item.name === 'toggle-mirror');
+  shortcut.textContent = command?.shortcut ? t('shortcutAssigned', command.shortcut) : t('shortcutUnassigned');
+} catch { shortcut.textContent = t('shortcutUnassigned'); }
 render(await send('GET_STATE'));

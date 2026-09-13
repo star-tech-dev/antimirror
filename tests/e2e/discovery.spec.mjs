@@ -5,8 +5,8 @@ import { popupHarness } from './popup-helper.mjs';
 test('S02 production deep discovery, ranking, budgets and cleanup', async ({ baseURL }, info) => {
   test.setTimeout(90_000);
   const extension = path.resolve('.output/chrome-mv3');
-  const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true,
-    args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
+  const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true, locale: 'en-US',
+    args: ['--lang=en', `--disable-extensions-except=${extension}`, `--load-extension=${extension}`] });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
     const openPopup = popupHarness(context, worker);
@@ -47,7 +47,7 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
     for (const scenario of ['open', 'closed', 'nested', 'slot', 'secondary']) {
       await load(scenario); await instrument();
       const popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toBe('Видео отражено');
+      await expect.poll(() => popup.text()).toBe('Video mirrored');
       expect(await counts()).toEqual(scenario === 'secondary' ? [1, 0] : [1]);
       expect((await metrics()).intersections).toBe(0);
       expect((await metrics()).timers).toBeLessThanOrEqual(1); // Visible selected-target watchdog only.
@@ -59,30 +59,30 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
         await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
         expect((await counts())[0]).toBe(1);
       }
-      await popup.click(); await expect.poll(() => popup.text()).toBe('Выключено'); await clean();
+      await popup.click(); await expect.poll(() => popup.text()).toBe('Off'); await clean();
       await popup.close();
     }
 
     await load('closed'); await instrument();
     let hostPopup = await openPopup(page); await hostPopup.click();
-    await expect.poll(() => hostPopup.text()).toBe('Видео отражено');
+    await expect.poll(() => hostPopup.text()).toBe('Video mirrored');
     await page.evaluate(() => document.querySelector('#stage > .shadow-host').remove());
     await expect.poll(counts).toEqual([0]); await clean();
     await hostPopup.close(); hostPopup = await openPopup(page);
-    await expect.poll(() => hostPopup.text()).toBe('Выключено: видео удалено'); await hostPopup.close();
+    await expect.poll(() => hostPopup.text()).toBe('Turned off because the video was removed'); await hostPopup.close();
 
     await load('multiple');
     await page.getByRole('button', { name: 'Fullscreen', exact: true }).click();
     await page.waitForFunction(() => !!document.fullscreenElement);
     let fullscreenPopup = await openPopup(page); await fullscreenPopup.click();
-    await expect.poll(() => fullscreenPopup.text()).toBe('Стили страницы мешают отражению');
+    await expect.poll(() => fullscreenPopup.text()).toBe('Page styles prevent safe mirroring');
     expect(await counts()).toEqual([0, 0]);
     await fullscreenPopup.close(); await page.evaluate(() => document.exitFullscreen());
     await page.locator('figcaption').first().evaluate(el => el.addEventListener('click', () => el.parentElement.requestFullscreen(), { once: true }));
     await page.locator('figcaption').first().click();
     await page.waitForFunction(() => document.fullscreenElement?.tagName === 'FIGURE');
     fullscreenPopup = await openPopup(page); await fullscreenPopup.click();
-    await expect.poll(() => fullscreenPopup.text()).toBe('Видео отражено');
+    await expect.poll(() => fullscreenPopup.text()).toBe('Video mirrored');
     expect(await counts()).toEqual([1, 0]);
     await fullscreenPopup.click(); await fullscreenPopup.close();
     await page.evaluate(() => document.exitFullscreen());
@@ -91,7 +91,7 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
       await load('multiple');
       await page.locator('figure').first().evaluate((el, style) => el.setAttribute('style', style), style);
       const popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toBe('Видео отражено');
+      await expect.poll(() => popup.text()).toBe('Video mirrored');
       expect(await counts()).toEqual([0, 1]);
       await popup.click(); await popup.close();
     }
@@ -102,7 +102,7 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
       await page.waitForTimeout(scenario === 'late-shadow' ? 750 : 250);
       if (scenario === 'late-shadow') await page.evaluate(() => window.__antiMirrorFixture.attachLate());
       else await page.getByRole('button', { name: 'Добавить video', exact: true }).evaluate(button => button.click());
-      await expect.poll(() => popup.text()).toBe('Видео отражено');
+      await expect.poll(() => popup.text()).toBe('Video mirrored');
       expect(await counts()).toEqual([1]);
       await popup.click(); await clean(); await popup.close();
     }
@@ -112,20 +112,20 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
       const template = document.createElement('template'); template.innerHTML = '<video></video>'; document.body.append(template);
     });
     let popup = await openPopup(page); await popup.click();
-    await expect.poll(() => popup.text()).toBe('Подходящее видео не найдено'); await clean();
+    await expect.poll(() => popup.text()).toBe('No suitable video found'); await clean();
     const before = (await metrics()).visits;
     await page.getByRole('button', { name: 'Добавить video', exact: true }).evaluate(button => button.click());
     await page.waitForTimeout(200);
     expect(await counts()).toEqual([0]); expect((await metrics()).visits).toBe(before);
-    await popup.click(); await expect.poll(() => popup.text()).toBe('Видео отражено');
+    await popup.click(); await expect.poll(() => popup.text()).toBe('Video mirrored');
     await page.evaluate(() => window.__antiMirrorFixture.replaceVideo());
     await expect.poll(counts).toEqual([0, 0]);
     await popup.close(); popup = await openPopup(page);
-    await expect.poll(() => popup.text()).toBe('Выключено: видео удалено'); await clean(); await popup.close();
+    await expect.poll(() => popup.text()).toBe('Turned off because the video was removed'); await clean(); await popup.close();
 
     await load('late-shadow'); await instrument();
     popup = await openPopup(page); await popup.click(); await page.waitForTimeout(100); await popup.click();
-    await expect.poll(() => popup.text()).toBe('Выключено'); await clean();
+    await expect.poll(() => popup.text()).toBe('Off'); await clean();
     await page.evaluate(() => window.__antiMirrorFixture.attachLate());
     await page.waitForTimeout(600); expect(await counts()).toEqual([0]); await clean(); await popup.close();
 
@@ -139,7 +139,7 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
         }
       }, budget);
       await instrument(); popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toBe('Не удалось полностью проверить страницу'); await clean();
+      await expect.poll(() => popup.text()).toBe('Could not completely inspect this page'); await clean();
       const m = await metrics(); expect(m.visits).toBeLessThan(26_000);
       console.log(budget, m); await popup.close();
     }
@@ -154,7 +154,7 @@ test('S02 production deep discovery, ranking, budgets and cleanup', async ({ bas
             : class extends Original { observe() {} };
         } }), { id: tabId, fault });
       popup = await openPopup(page); await popup.click();
-      await expect.poll(() => popup.text()).toBe('Не удалось полностью проверить страницу');
+      await expect.poll(() => popup.text()).toBe('Could not completely inspect this page');
       expect(await counts()).toEqual([0]); await clean(); await popup.close();
     }
 

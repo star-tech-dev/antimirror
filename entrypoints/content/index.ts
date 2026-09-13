@@ -6,7 +6,7 @@ import { isEligibleVideo } from '../../src/content/candidates';
 import { watchTargetConnection } from '../../src/content/target-connection';
 import { captureMediaIdentity, watchTargetSession } from '../../src/content/target-session';
 import { FrameBindings } from '../../src/content/frame-bindings';
-import { PROTOCOL_VERSION, isContentRequest, type CandidateRef, type ContentResponse } from '../../src/shared/protocol';
+import { PROTOCOL_VERSION, isContentRequest, type CandidateRef, type ContentResponse, type TargetLostReason } from '../../src/shared/protocol';
 
 const AGENT_KEY = '__antiMirrorAgentV1';
 const APPLY_LEASE_MS = 5_000;
@@ -18,7 +18,7 @@ interface ActiveTarget extends CandidateRef {
   lease?: ReturnType<typeof setTimeout>;
   connection?: { dispose(): void };
   session?: ReturnType<typeof watchTargetSession>;
-  reportLost?(reason?: 'NAVIGATION'): void;
+  reportLost?(reason?: TargetLostReason): void;
 }
 
 interface AgentGlobal { dispose(): void }
@@ -125,7 +125,7 @@ export default defineContentScript({
         active = { operationId: message.operationId, targetId: message.targetId,
           mediaToken: message.mediaToken, video: target.video, handle };
         active.lease = setTimeout(() => disposeActive(message.operationId), APPLY_LEASE_MS);
-        const lost = (reason?: 'NAVIGATION') => {
+        const lost = (reason?: TargetLostReason) => {
           disposeActive(message.operationId);
           void browser.runtime.sendMessage({ protocolVersion: PROTOCOL_VERSION, type: 'TARGET_LOST',
             operationId: message.operationId, frameId: message.frameId, documentNonce,

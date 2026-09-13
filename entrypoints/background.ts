@@ -1,6 +1,7 @@
 import { defineBackground } from 'wxt/utils/define-background';
 import { browser } from 'wxt/browser';
 import { TabController } from '../src/background/tab-controller';
+import { handleBrowserCommand } from '../src/background/commands';
 import { isUiRequest, isTargetLost, isFrameLost } from '../src/shared/protocol';
 
 export default defineBackground(() => {
@@ -42,4 +43,7 @@ export default defineBackground(() => {
   });
   browser.tabs.onRemoved.addListener(tabId => { void controller.remove(tabId).catch(() => undefined); });
   browser.permissions.onRemoved.addListener(() => { void controller.ready.then(() => controller.permissionsRevoked()).catch(() => undefined); });
+  browser.commands.onCommand.addListener(command => {
+    void handleBrowserCommand(controller, command).catch(() => undefined);
+  });
 });

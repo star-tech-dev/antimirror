@@ -6,7 +6,12 @@ export type OffReason =
   | 'NO_VIDEO'
   | 'INCOMPLETE_COVERAGE'
   | 'FRAMES_UNAVAILABLE'
+  | 'PERMISSION_DENIED'
   | 'TARGET_LOST'
+  | 'MEDIA_CHANGED'
+  | 'PLAYBACK_ENDED'
+  | 'PIP_UNSUPPORTED'
+  | 'EFFECT_LOST'
   | 'AMBIGUOUS_TARGET'
   | 'NAVIGATION'
   | 'AGENT_UNAVAILABLE'
@@ -57,12 +62,15 @@ export interface CandidateSnapshot extends CandidateRef {
   fullscreen: boolean;
 }
 
-export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string; reason?: 'NAVIGATION' } & TargetRef;
+export type TargetLostReason = 'NAVIGATION' | 'MEDIA_CHANGED' | 'PLAYBACK_ENDED' | 'PIP_UNSUPPORTED' | 'EFFECT_LOST';
+export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string; reason?: TargetLostReason } & TargetRef;
 
 export function isTargetLost(value: unknown): value is TargetLost {
   return isRecord(value) && value.protocolVersion === 1 && value.type === 'TARGET_LOST' &&
     isFrameId(value.frameId) && isId(value.operationId) && isId(value.documentNonce) &&
-    isId(value.targetId) && isId(value.mediaToken) && (value.reason === undefined || value.reason === 'NAVIGATION');
+    isId(value.targetId) && isId(value.mediaToken) && (value.reason === undefined ||
+      (typeof value.reason === 'string' &&
+        ['NAVIGATION', 'MEDIA_CHANGED', 'PLAYBACK_ENDED', 'PIP_UNSUPPORTED', 'EFFECT_LOST'].includes(value.reason)));
 }
 
 export type FrameLost = { protocolVersion: 1; type: 'FRAME_LOST'; operationId: string; documentNonce: string; token: string; reason?: 'NAVIGATION' };

@@ -4,8 +4,8 @@ import path from 'node:path';
 test('S01 manual popup flow is isolated, reversible and reset on reload', async ({ baseURL }, info) => {
   const extension = path.resolve('.output/chrome-mv3');
   const context = await chromium.launchPersistentContext('', {
-    channel: 'chromium', headless: true,
-    args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
+    channel: 'chromium', headless: true, locale: 'en-US',
+      args: ['--lang=en', `--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
   });
   try {
     const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
@@ -64,13 +64,13 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     expect(await animationCount(a)).toBe(0);
 
     let popup = await openPopup(a);
-    await expect.poll(() => popup.text('#status')).toBe('Выключено');
+    await expect.poll(() => popup.text('#status')).toBe('Off');
     expect(await animationCount(a)).toBe(0);
     await popup.close();
 
     popup = await openPopup(a);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Видео отражено');
+    await expect.poll(() => popup.text('#status')).toBe('Video mirrored');
     expect(await animationCount(a)).toBe(1);
     expect(await transform(a)).toBe('matrix(-1, 0, 0, 1, 0, 0)');
     expect(await actionTitle(a)).toBe('AntiMirror — ON');
@@ -81,20 +81,20 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await b.goto(`${baseURL}/?case=basic&tab=b`);
     await expect(b.locator('video')).toBeVisible();
     popup = await openPopup(b);
-    await expect.poll(() => popup.text('#status')).toBe('Выключено');
+    await expect.poll(() => popup.text('#status')).toBe('Off');
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Видео отражено');
+    await expect.poll(() => popup.text('#status')).toBe('Video mirrored');
     expect(await animationCount(a)).toBe(1);
     expect(await animationCount(b)).toBe(1);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Выключено');
+    await expect.poll(() => popup.text('#status')).toBe('Off');
     expect(await animationCount(a)).toBe(1);
     expect(await animationCount(b)).toBe(0);
     await popup.close();
 
     popup = await openPopup(a);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Выключено');
+    await expect.poll(() => popup.text('#status')).toBe('Off');
     expect(await animationCount(a)).toBe(0);
     expect(await actionTitle(a)).toBe('AntiMirror — OFF');
     await popup.close();
@@ -104,7 +104,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await paused.locator('video').evaluate(video => video.pause());
     popup = await openPopup(paused);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Видео отражено');
+    await expect.poll(() => popup.text('#status')).toBe('Video mirrored');
     expect(await paused.locator('video').evaluate(video => video.paused)).toBe(true);
     await popup.click('#toggle');
     await popup.close();
@@ -113,7 +113,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await none.goto(`${baseURL}/?case=no-video`);
     popup = await openPopup(none);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Подходящее видео не найдено');
+    await expect.poll(() => popup.text('#status')).toBe('No suitable video found');
     expect(await actionTitle(none)).toBe('AntiMirror — OFF');
     await popup.close();
 
@@ -121,7 +121,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await ambiguous.goto(`${baseURL}/?case=multiple`);
     popup = await openPopup(ambiguous);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Найдено несколько видео. Разверните нужное в fullscreen и повторите');
+    await expect.poll(() => popup.text('#status')).toBe('Several videos found. Make the intended player fullscreen and try again');
     expect(await ambiguous.locator('video').evaluateAll(videos => videos.map(video => video.getAnimations().length))).toEqual([0, 0]);
     await popup.close();
 
@@ -129,7 +129,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await rapid.goto(`${baseURL}/?case=basic&tab=rapid`);
     popup = await openPopup(rapid);
     await popup.evaluate(`document.querySelector('#toggle').click(); document.querySelector('#toggle').click()`);
-    await expect.poll(() => popup.text('#status')).toBe('Выключено');
+    await expect.poll(() => popup.text('#status')).toBe('Off');
     await expect.poll(() => animationCount(rapid)).toBe(0);
     await popup.close();
 
@@ -150,7 +150,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     expect(await animationCount(reinjected)).toBe(1);
     await popup.close();
     popup = await openPopup(reinjected);
-    await expect.poll(() => popup.text('#status')).toBe('Видео отражено');
+    await expect.poll(() => popup.text('#status')).toBe('Video mirrored');
     await popup.click('#toggle');
     await expect.poll(() => animationCount(reinjected)).toBe(0);
     await popup.close();
@@ -159,25 +159,25 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await styled.goto(`${baseURL}/?case=transforms`);
     popup = await openPopup(styled);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Видео отражено');
+    await expect.poll(() => popup.text('#status')).toBe('Video mirrored');
     expect(await transform(styled)).toBe('matrix(-0.898767, -0.0471024, -0.0471024, 0.898767, 18, 0)');
     await styled.locator('video').evaluate(video => { video.style.transform = 'translateX(44px) scale(.8)'; });
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Выключено');
+    await expect.poll(() => popup.text('#status')).toBe('Off');
     expect(await styled.locator('video').getAttribute('style')).toContain('translateX(44px) scale(0.8)');
     expect(await transform(styled)).toBe('matrix(0.8, 0, 0, 0.8, 44, 0)');
     await popup.close();
 
     popup = await openPopup(a);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Видео отражено');
+    await expect.poll(() => popup.text('#status')).toBe('Video mirrored');
     await popup.close();
     await a.reload();
     await expect(a.locator('video')).toBeVisible();
     await expect.poll(() => actionTitle(a)).toBe('AntiMirror — OFF');
     expect(await animationCount(a)).toBe(0);
     popup = await openPopup(a);
-    await expect.poll(() => popup.text('#status')).toBe('Выключено после загрузки страницы');
+    await expect.poll(() => popup.text('#status')).toBe('Turned off after page navigation');
     await popup.close();
 
     const reloadRace = await context.newPage();
@@ -194,7 +194,7 @@ test('S01 manual popup flow is isolated, reversible and reset on reload', async 
     await restricted.goto('chrome://version/');
     popup = await openPopup(restricted);
     await popup.click('#toggle');
-    await expect.poll(() => popup.text('#status')).toBe('Страница недоступна. Обновите её и попробуйте снова');
+    await expect.poll(() => popup.text('#status')).toBe('This page is unavailable. Reload it and try again');
     expect(await actionTitle(restricted)).toMatch(/^AntiMirror/);
     await popup.close();
 

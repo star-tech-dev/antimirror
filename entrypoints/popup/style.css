@@ -1,7 +1,17 @@
-body { width: 280px; margin: 0; font: 15px system-ui; color: #17202a; background: #f6f7f9; }
-main { padding: 20px; }
-h1 { margin: 0 0 12px; font-size: 20px; }
-#status { min-height: 2.5em; margin: 0 0 14px; color: #465362; }
-button { width: 100%; padding: 10px; border: 0; border-radius: 8px; color: white; background: #176b4d; font: inherit; font-weight: 650; }
+:root { color-scheme: light dark; }
+body { width: 304px; margin: 0; font: 15px/1.4 system-ui, sans-serif; color: #17202a; background: #f6f7f9; }
+main { padding: 18px; }
+header { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
+.mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; color: #fff; background: #176b4d; font-size: 18px; font-weight: 750; }
+h1 { margin: 0; font-size: 19px; letter-spacing: -.2px; }
+#status { min-height: 2.8em; margin: 0 0 13px; color: #465362; }
+button { width: 100%; min-height: 42px; padding: 9px 12px; border: 0; border-radius: 9px; color: #fff; background: #176b4d; font: inherit; font-weight: 700; cursor: pointer; }
 button[aria-pressed="true"] { background: #9d2933; }
-button:disabled { opacity: .6; }
+button:disabled { cursor: default; opacity: .58; }
+button:focus-visible { outline: 3px solid #71a9ff; outline-offset: 2px; }
+.shortcut { min-height: 2.6em; margin: 11px 1px 0; color: #64717e; font-size: 12px; }
+@media (prefers-color-scheme: dark) {
+  body { color: #eef3f8; background: #17202a; }
+  #status { color: #c6d0db; }
+  .shortcut { color: #9eabb8; }
+}
