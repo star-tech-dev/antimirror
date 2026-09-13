@@ -1,7 +1,7 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S06 завершён.
-**Следующий слайс:** S07, release candidate.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S07 завершён как локальный RC.
+**Следующее действие:** решения владельца перед публичной submission.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
@@ -12,7 +12,7 @@
 | S04 Lifecycle + recovery | DONE | [S04 evidence](evidence/S04-2026-09-13.md) | Media/URL reset, real BFCache/discard/browser restart, natural idle recovery |
 | S05 UX + compatibility polish | DONE | [S05 evidence](evidence/S05-2026-09-13.md) | Chrome/VK и Firefox native automation PASS; Firefox manual UI NOT_RUN, пропуск принят пользователем |
 | S06 Hardening + performance | DONE | [S06 evidence](evidence/S06-2026-09-13.md) | Exact guards, security/stress automation, restart fix, artifact review |
-| S07 Release candidate | TODO | — | — |
+| S07 Release candidate | DONE | [S07 evidence](evidence/S07-2026-09-13.md) | Local RC reproducible; public submission BLOCKED владельцем |
 
 Допустимые статусы: TODO, IN_PROGRESS, BLOCKED, DONE. Ручной NOT_RUN gate не превращает
 слайс автоматически в DONE. В evidence отдельно различать implementation и verification.
@@ -24,6 +24,17 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S07: добавлены store-level icons, Chrome/Firefox shipping ZIP, bounded Firefox source ZIP,
+автоматический archive allowlist/SHA256 gate, clean-profile install/update/disable harness,
+актуальные README/privacy/changelog/checklist и evidence index. Артефакты дважды собрались
+byte-identical из `1016390e…`. Chromium production 8/8, Firefox native S00/S02/S03/S05,
+настоящий Chrome toolbar и публичный VK Видео smoke — PASS. Принудительные update/disable
+оставляют WAAPI effect до page reload; reload подтверждённо очищает его, ограничение записано.
+Firefox manual UI остаётся NOT_RUN по принятому пропуску. Публичная submission ожидает LICENSE,
+metadata, стабильный Firefox ID, support/privacy URL, store accounts и отдельное поручение.
+
+## Предыдущий запуск S06
 
 S06: protocol/session guards закрыты exact allowlists и bounded identities; добавлены adversarial
 trust-boundary E2E, OFF mutation stress, 100 ON/OFF циклов и large-DOM profile. Full restart gate

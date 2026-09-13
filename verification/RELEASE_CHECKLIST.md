@@ -10,6 +10,7 @@ are not release claims.
 | Store-level icons 16/32/48/128 and distinct ON/OFF shapes | PASS | generated manifests + PNG inspection |
 | Chrome/Firefox runtime ZIP has root manifest and only allowlisted runtime files | PASS | `pnpm verify:release` |
 | Firefox source ZIP is bounded and reproducible from lockfile | PASS | source allowlist + README build commands |
+| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `1016390e…` |
 | No fixture/test API, localhost, source maps, keys, remote code or absolute | PASS | `pnpm verify:release`; S06 artifact review |
 | Clean-profile install and manual first activation | PASS | `pnpm test:release-lifecycle` |
 | Forced update/disable boundary | PASS with limitation | effect may remain immediately; page reload returns zero effect |

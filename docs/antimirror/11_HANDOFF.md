@@ -2,63 +2,57 @@
 
 ## Где остановились · 2026-09-13
 
-S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`, S03 `935e413`, S04 `3b26990`,
-S05 implementation `96b332e`, S05 docs `2fbfe82`. S06 DONE; подробности —
-[S06 evidence](evidence/S06-2026-09-13.md). Рабочее дерево S06 должно быть продолжено с
-коммита, указанного в `git log` после этой передачи.
+Все implementation slices S00–S07 завершены. S06: `056a17a`. Воспроизводимая S07 RC
+конфигурация: `1016390e2e1188ef08a054cf3321da659281730d`. Подробности и хеши:
+[S07 evidence](evidence/S07-2026-09-13.md), [release checklist](../../verification/RELEASE_CHECKLIST.md)
+и корневой `PACK_MANIFEST.json`.
 
-## Следующее точное действие
+## Локальные RC artifacts
 
-Прочитать `slices/S07_RELEASE_CANDIDATE.md` и выполнить release-candidate checklist. Проверить
-финальные unpacked/packaged artifacts, versioning, release docs и доступные обязательные browser
-smoke. Не публиковать и не push без отдельного поручения. Firefox natural event-page idle и
-manual UI остаются честными `NOT_RUN`; пользователь разрешил пропустить недоступную Firefox
-проверку, поэтому не повторять тот же неработающий UI automation без новой возможности.
+- `.output/antimirror-0.1.0-chrome.zip`
+- `.output/antimirror-0.1.0-firefox.zip`
+- `.output/antimirror-0.1.0-sources.zip`
 
-## Что добавил S06
+Артефакты gitignored. Они дважды собраны byte-identical из `1016390e…`; `verify:release`
+проверил root manifests, runtime/source allowlists, отсутствие test/dev markers и напечатал
+SHA256. Не пересобирать их после изменения README/package/config без обновления hashes/evidence.
 
-Protocol и persisted session guards теперь используют exact allowlists для types/reasons,
-safe integer IDs и строки длиной 1–128. Неизвестные error reasons, object-toString coercion,
-oversized identities/areas, отрицательные tab IDs и malformed ancestor records отклоняются.
+## Что проверено в S07
 
-`tests/e2e/hardening.spec.mjs` проверяет page/content trust boundary, forged bind, malformed и
-oversized extension messages, отсутствие MAIN-world capability, OFF mutation storm, ресурсы ON,
-100 циклов ON/OFF и большой DOM. В Chromium 153: ON p95 41.30 ms, OFF p95 8.30 ms; cleanup
-возвращает observers/IO/timers/animations к нулю. Large DOM завершился за 103.62 ms с 25 001
-TreeWalker calls (25k protocol budget + terminal call), корректным incomplete и 0 ms long tasks.
+41 unit test, lint/types, обе MV3 builds/manifests, Chromium 153 production 8/8 и Firefox 155
+native S00/S02/S03/S05 — PASS. Новый clean-profile gate проверил первую установку/активацию,
+runtime reload и disable. При принудительном уничтожении context один WAAPI effect остаётся до
+reload страницы; reload возвращает zero effects. Это TD04 `ACCEPTED`, не мгновенный cleanup PASS.
 
-Full browser restart обнаружил, что пустая после рестарта native session оставляла базовый
-action title `AntiMirror`. Startup recovery теперь выставляет tab-specific `AntiMirror — OFF`
-для вкладок без активного state. Persisted ON никогда не показывается до exact reconciliation
-target/ancestor и ACK. Unit и повторный full-process restart подтверждают исправление.
+Настоящий toolbar popup в отдельном Chrome for Testing profile прошёл OFF → ON → OFF. Доступный
+публичный VK Видео recording без авторизации прошёл `Looking for video… → Video mirrored → Off`.
+Firefox manual UI остаётся NOT_RUN по принятому пользователем пропуску; Edge/Brave и screen
+reader также NOT_RUN.
 
-## Проверено
+## Следующее точное действие владельца
 
-`pnpm lint`, `pnpm typecheck`, 41 unit test, Chrome+Firefox production MV3 builds и manifest
-audit — PASS. Chromium 153: 8 production tests / 6 specs S01–S06 и S00 feasibility — PASS.
-Raw CDP production gates natural idle, discard и full browser restart — PASS. Firefox 155.0.1:
-S00 native session/capabilities, S02 roots, S03 девять frame cases и S05 renderer/i18n/command —
-PASS. Artifact review: нет app logs/network/eval/HTML injection/storage.local, test endpoints,
-source maps, keys, remote code или лишних permissions. Критических/высоких открытых дефектов
-по отдельному `antimirror-review` checklist не найдено.
+До публичной submission владелец должен выбрать LICENSE, подтвердить product/publisher name,
+заменить `antimirror@local.invalid` на стабильный Firefox add-on ID, дать support contact и
+hosted privacy-policy URL, подготовить store accounts/listing assets/declarations и явно поручить
+upload. После любого такого изменения: обновить version/manifest/docs, выполнить полный release
+checklist, пересобрать три ZIP, обновить SHA256 и только затем отправлять на review.
 
-## Команды и harness
+## Команды
 
-Основной набор: `pnpm lint`; `pnpm typecheck`; `pnpm test:unit`; `pnpm build:chrome`;
-`pnpm build:firefox`; `pnpm verify:manifests`; затем на свободных ports
-`FIXTURE_PORT=5573 FIXTURE_FRAME_PORT=5574 pnpm test:e2e:chromium`.
+```sh
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm test:e2e:chromium
+pnpm build:chrome
+pnpm build:firefox
+pnpm verify:manifests
+pnpm zip:chrome
+pnpm zip:firefox
+pnpm verify:release
+```
 
-Для recovery запустить отдельный `pnpm fixtures` с теми же ports и выполнить
-`pnpm test:recovery-idle`, `pnpm test:discard`, `pnpm test:browser-restart`. Firefox native
-regression: `pnpm test:e2e:firefox`, `pnpm test:discovery:firefox`,
-`pnpm test:frames:firefox`, `pnpm test:ux:firefox`. Browser harness использует только временные
-профили; raw CDP не подключается к production worker в natural-idle gate.
-
-## Ограничения / долг
-
-TD01–TD03 CLOSED; нового implementation debt в S06 нет. Firefox natural event-page idle нельзя
-достоверно принудить текущим native harness и он остаётся `NOT_RUN`; session roundtrip PASS.
-Firefox toolbar/fullscreen/RU manual UI, Edge/Brave, screen reader и дополнительные реальные
-сайты — verification gaps для S07, не заявленные PASS. Native fullscreen самого video в
-Chromium остаётся документированной безопасной границей `TRANSFORM_CONFLICT`; fullscreen
-container работает. Chromium blob/data frame-tree omission остаётся `FRAMES_UNAVAILABLE`.
+Для recovery/Firefox сначала запустить `pnpm fixtures` на тех же свободных
+`FIXTURE_PORT`/`FIXTURE_FRAME_PORT`; точные команды находятся в README. Не публиковать, не push
+и не создавать store identifiers/credentials без отдельного поручения владельца.

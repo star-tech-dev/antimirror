@@ -1,12 +1,13 @@
 # 10. Технический долг
 
-Обновлено во время S06, 2026-09-13.
+Обновлено во время S07, 2026-09-13.
 
 | ID | Severity | Конкретная проблема | Evidence | Почему отложено | Исправление / слайс | Статус |
 |---|---|---|---|---|---|---|
 | TD01 | Medium | `createMirrorEffect` сам не диагностирует conflict | S01 caller сравнивает фактическую матрицу до APPLIED и делает rollback | Ownership оставлен у content session, primitive остаётся малым | S05 расширяет compatibility matrix, но базовый дефект закрыт | CLOSED |
 | TD02 | High | Recovery должен сверять target и ancestor watchers | S04: GET_TARGET_STATE/GET_WATCH_STATE, transitional records, pending cleanup; production natural idle + unchanged target/op/ON icon PASS | Реализовано в S04 | Адресная reconciliation без discovery, retry cleanup перед новым ON | CLOSED |
 | TD03 | Medium | Native fullscreen самого video в Chromium не принимает additive transform; безопасный `TRANSFORM_CONFLICT` выбран как v1 boundary | S05 Chromium: fullscreen video conflict, fullscreen figure ON, styles/controls intact; Firefox renderer matrix PASS | Firefox native fullscreen/control toolbar smoke NOT_RUN; пользователь явно принял пропуск 2026-09-13 | V1 boundary документирован; менять backend только при найденном дефекте или новом требовании | CLOSED |
+| TD04 | Medium | Принудительный update/disable может уничтожить content context до cleanup и оставить owned WAAPI effect до reload страницы | S07 clean-profile gate: immediate effects=1, page reload effects=0 для runtime reload и disable | Старый context не получает гарантированного callback; текущий additive backend иначе сохраняет чужие стили и closed-root coverage | Документировать reload; исследовать автоматически снимаемый browser-owned backend только отдельным post-v1 spike | ACCEPTED |
 
 S04 закрыл TD02 реальным natural idle gate; Firefox full recovery пока verification gap.
 S05 проверил runtime CSS priority conflicts, site animation и PiP policy; потеря собственного
@@ -21,3 +22,6 @@ S06 не открыл нового незакрытого implementation debt. �
 исправлен и закрыт unit + full browser-process restart gate. Firefox natural event-page idle,
 Edge/Brave, screen reader и дополнительные real-site smoke остаются verification gaps S07,
 а не известными runtime-дефектами.
+
+S07 добавил TD04 как измеренную платформенную границу, а не скрытый PASS. Владельческие данные
+для store submission перечислены в release checklist и не являются техническим долгом runtime.

@@ -29,3 +29,8 @@
 
 Архитектурные альтернативы не нужно реализовывать все. В v1 один rendering backend,
 один permission model, один state writer, одна схема cleanup и один путь ручной активации.
+
+S07 (2026-09-13): доступный публичный VK recording и настоящий Chrome toolbar popup прошли в
+чистом Chrome for Testing 153 profile. Generated permissions сопоставлены с фактическим runtime,
+а shipping/source ZIP проверены allowlists и повторными hashes. Firefox manual UI и Edge/Brave
+остаются `NOT_RUN`; owner metadata/license/privacy URL блокируют только публичную submission.

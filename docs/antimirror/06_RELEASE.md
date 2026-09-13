@@ -66,3 +66,14 @@ embedded players. `webNavigation` — прекращение действия н
 Подтвердить название и лицензию; предоставить действующие store/developer реквизиты и contact
 для поддержки; принять окончательное описание/privacy policy; явно поручить публикацию.
 Агент может подготовить артефакты и отчёт, но не публикует автоматически.
+
+## Состояние RC 0.1.0 · 2026-09-13
+
+Локальные Chrome/Firefox MV3 ZIP и обязательный для bundled Firefox build source ZIP собраны
+дважды с одинаковыми SHA256. Manifest в корне архивов, store icons и отсутствие test/dev файлов
+проверяются `pnpm verify:release`. Подробности: [S07 evidence](evidence/S07-2026-09-13.md) и
+[release checklist](../../verification/RELEASE_CHECKLIST.md).
+
+Публичная submission заблокирована отсутствующими решениями владельца: LICENSE, окончательные
+product/publisher name, стабильный Firefox ID, support contact, hosted privacy-policy URL и store
+accounts/listing data. `antimirror@local.invalid` остаётся только локальной test identity.

@@ -58,4 +58,5 @@ cross-origin координация; host permissions/revocation; CSP в бра�
 worker suspend/recovery; Firefox/Edge/Brave; настоящие плееры VK, live и остальные сайты;
 все performance budgets/метрики; release package и store review.
 
-Все восемь слайсов реализации остаются **TODO**. У пакета нет production-кода расширения.
+На дату этого архивного отчёта все восемь слайсов оставались **TODO**, а production-кода не
+было. Текущее состояние намеренно ведётся только в актуальном release checklist и progress.
