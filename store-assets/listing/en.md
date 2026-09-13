@@ -17,8 +17,9 @@ the active tab while the player controls, captions, buttons, and page layout sta
 
 AntiMirror is useful for mirrored recordings, webcam video, streams, classes, demonstrations, and
 other HTML5 video that appears horizontally reversed. It does not download, record, or inspect
-video frames. Canvas/WebGL players, Picture-in-Picture, protected browser pages, and inaccessible
-frames may not be supported.
+video frames. A native Picture-in-Picture window may not show the flip, but returning to the page
+keeps the same video mirrored. Canvas/WebGL players, protected pages, and inaccessible frames may
+not be supported.
 
 Open the extension, press **Turn on**, and press it again to restore the original view.
 

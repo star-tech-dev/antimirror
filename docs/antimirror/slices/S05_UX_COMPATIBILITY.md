@@ -17,7 +17,8 @@ Full-screen/overlays/native controls/captions проверяются на реа
 
 В popup одна основная control, понятные состояния и русские/английские строки. Hotkey
 работает либо ясно не назначен. Existing transforms/styles остаются живыми; unsupported
-CSS conflict возвращает безопасный OFF, не ломая страницу. PiP не обещается как fullscreen.
+CSS conflict возвращает безопасный OFF, не ломая страницу. PiP сохраняет ON/target, хотя
+отражение отдельного нативного PiP-окна не обещается.
 
 ## Проверки
 

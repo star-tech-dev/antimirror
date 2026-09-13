@@ -124,7 +124,8 @@ Incognito не включать автоматически; если польз�
 | Firefox ESR | Только после фактического прогонов выбранной версии | Не обещана заранее |
 | Opera / Yandex / другие Chromium | Возможная совместимость | Не рекламировать без smoke |
 | Safari, Android, iOS | Вне v1 | Не поддерживаются пакетом |
-| Browser PiP / casting | Вне гарантии | Не считать DOM fullscreen аналогом PiP |
+| Browser PiP | Состояние сохраняется | Native PiP surface может игнорировать DOM-transform; после выхода тот же DOM-video остаётся ON |
+| Casting | Вне гарантии | Не считать DOM rendering доказательством изменения внешней поверхности |
 | DRM-видео | Не обходить защиту | CSS-поведение проверять, не обещать все сервисы |
 | Chrome/Firefox internal pages, store pages, PDF viewer | Недоступно/вне гарантии | Понятный OFF reason |
 | Canvas/WebGL player без видимого video | Вне v1 | Не пытаться отражать скрытый источник |

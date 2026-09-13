@@ -92,9 +92,16 @@ test('S05 popup, shortcut and renderer compatibility', async ({ baseURL }) => {
     expect(await page.locator('video').evaluate(video => video.controls)).toBe(true);
     expect(await page.locator('figcaption').evaluate(caption => ({ animations: caption.getAnimations().length, transform: getComputedStyle(caption).transform })))
       .toEqual({ animations: 0, transform: 'none' });
-    await page.locator('video').evaluate(video => video.dispatchEvent(new window.Event('enterpictureinpicture')));
-    await expect.poll(() => popup.evaluate('chrome.tabs.query({active:true,currentWindow:true}).then(([tab])=>chrome.runtime.sendMessage({protocolVersion:1,type:"GET_STATE",tabId:tab.id,requestId:crypto.randomUUID()})).then(state=>state.reason)'))
-      .toBe('PIP_UNSUPPORTED');
+    await page.locator('video').evaluate(video => {
+      video.dispatchEvent(new window.Event('enterpictureinpicture'));
+      video.ownerDocument.dispatchEvent(new window.Event('visibilitychange'));
+      video.dispatchEvent(new window.Event('leavepictureinpicture'));
+    });
+    await expect.poll(() => popup.evaluate('chrome.tabs.query({active:true,currentWindow:true}).then(([tab])=>chrome.runtime.sendMessage({protocolVersion:1,type:"GET_STATE",tabId:tab.id,requestId:crypto.randomUUID()})).then(state=>state.phase)'))
+      .toBe('on');
+    expect(await animations()).toBe(1);
+    expect(await popup.text()).toBe('Video mirrored');
+    await popup.click(); await expect.poll(() => popup.text()).toBe('Off');
     await popup.close();
     await load('basic');
     popup = await openPopup(page); await popup.click(); await expect.poll(() => popup.text()).toBe('Video mirrored');
@@ -103,7 +110,7 @@ test('S05 popup, shortcut and renderer compatibility', async ({ baseURL }) => {
       .toBe('EFFECT_LOST');
     await popup.close(); popup = await openPopup(page);
     expect(await popup.text()).toBe('The page removed the mirror effect'); await popup.close();
-    console.log('S05 popup/a11y, declared shortcut, transforms, conflict, site animation, controls/overlay and PiP policy PASS');
+    console.log('S05 popup/a11y, shortcut, transforms, controls/overlay and PiP state retention PASS');
   } finally { await context.close(); }
 });
 

@@ -52,7 +52,7 @@ export interface CandidateSnapshot extends CandidateRef {
   fullscreen: boolean;
 }
 
-const TARGET_LOST_REASONS = ['NAVIGATION', 'MEDIA_CHANGED', 'PLAYBACK_ENDED', 'PIP_UNSUPPORTED', 'EFFECT_LOST'] as const;
+const TARGET_LOST_REASONS = ['NAVIGATION', 'MEDIA_CHANGED', 'PLAYBACK_ENDED', 'EFFECT_LOST'] as const;
 export type TargetLostReason = typeof TARGET_LOST_REASONS[number];
 export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string; reason?: TargetLostReason } & TargetRef;
 

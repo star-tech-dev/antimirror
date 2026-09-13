@@ -9,7 +9,7 @@ export function captureMediaIdentity(video: HTMLVideoElement): () => boolean {
     sources.every((node, index) => node.src === attributes[index]![0] && node.type === attributes[index]![1] && node.media === attributes[index]![2]);
 }
 
-export type TargetSessionLoss = 'MEDIA_CHANGED' | 'PLAYBACK_ENDED' | 'PIP_UNSUPPORTED' | 'EFFECT_LOST' | undefined;
+export type TargetSessionLoss = 'MEDIA_CHANGED' | 'PLAYBACK_ENDED' | 'EFFECT_LOST' | undefined;
 
 /** Local ownership checks. No discovery and no communication while the target is healthy. */
 export function watchTargetSession(video: HTMLVideoElement, healthy: () => boolean,
@@ -21,7 +21,6 @@ export function watchTargetSession(video: HTMLVideoElement, healthy: () => boole
   let timer: ReturnType<typeof setTimeout> | undefined;
   const mediaReset = () => invalidate('MEDIA_CHANGED');
   const playbackEnded = () => invalidate('PLAYBACK_ENDED');
-  const pip = () => invalidate('PIP_UNSUPPORTED');
   const invalidate = (reason: TargetSessionLoss) => { if (!disposed) { dispose(); lost(reason); } };
   const check = () => {
     if (disposed) return false;
@@ -45,14 +44,12 @@ export function watchTargetSession(video: HTMLVideoElement, healthy: () => boole
   observer.observe(video, { attributes: true, attributeFilter: ['src', 'type', 'media'], childList: true, subtree: true });
   for (const event of ['emptied', 'loadstart']) video.addEventListener(event, mediaReset);
   for (const event of ['error', 'ended']) video.addEventListener(event, playbackEnded);
-  video.addEventListener('enterpictureinpicture', pip);
   video.ownerDocument.addEventListener('visibilitychange', visibility);
   function dispose() {
     if (disposed) return;
     disposed = true; clearTimeout(timer); observer.disconnect();
     for (const event of ['emptied', 'loadstart']) video.removeEventListener(event, mediaReset);
     for (const event of ['error', 'ended']) video.removeEventListener(event, playbackEnded);
-    video.removeEventListener('enterpictureinpicture', pip);
     video.ownerDocument.removeEventListener('visibilitychange', visibility);
   }
   schedule();

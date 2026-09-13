@@ -38,7 +38,7 @@ describe('protocol runtime guards', () => {
     const lost = { protocolVersion: 1, type: 'TARGET_LOST', operationId: 'o', frameId: 0,
       documentNonce: 'd', targetId: 't', mediaToken: 'm' };
     expect(isTargetLost({ ...lost, reason: 'MEDIA_CHANGED' })).toBe(true);
-    expect(isTargetLost({ ...lost, reason: 'PIP_UNSUPPORTED' })).toBe(true);
+    expect(isTargetLost({ ...lost, reason: 'PIP_UNSUPPORTED' })).toBe(false);
     expect(isTargetLost({ ...lost, reason: 'UNKNOWN' })).toBe(false);
     expect(isTargetLost({ ...lost, reason: { toString: () => 'NAVIGATION' } })).toBe(false);
   });

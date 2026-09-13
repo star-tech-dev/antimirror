@@ -22,7 +22,9 @@ Desktop MV3-расширение вручную отражает по гориз
 
 ## Ограничения
 
-- Canvas/WebGL без видимого video, browser PiP, casting, DRM/CSP/sandbox bypass не поддерживаются.
+- Canvas/WebGL без видимого video, casting и DRM/CSP/sandbox bypass не поддерживаются. Нативное
+  PiP-окно может не показать DOM-transform, но вход/выход из PiP сохраняет ON и отражение того же
+  video после возврата на страницу.
 - Вшитые в кадр надписи отражаются вместе с видео; внешние DOM overlays не отражаются.
 - Native fullscreen самого video в Chromium может вернуть безопасный `TRANSFORM_CONFLICT`;
   fullscreen-контейнер поддерживается.

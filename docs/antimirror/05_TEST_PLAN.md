@@ -92,7 +92,7 @@ macOS падает при discard страницы, подключённой к 
 | T56 | Site отменяет свои/все animations | Без бесконечной войны и утечек; потеря нашего handle диагностируется | Real browser |
 | T57 | Нативные controls / DOM overlays / captions | Зафиксированы реальные визуальные ограничения | Manual |
 | T58 | DOM fullscreen / exit fullscreen | Тот же video ON, controls проверены | Manual+E2E |
-| T59 | PiP/casting | Не рекламируется unsupported поведение; доступное событие обрабатывается | Manual |
+| T59 | PiP/casting | PiP enter/leave не сбрасывает ON у того же video; native PiP flip не обещается; casting вне гарантии | E2E+Manual |
 | T60 | Page postMessage/marker пытаются включить | Ни один недоверенный канал не даёт enable | Security E2E |
 | T61 | Неверные tab/frame/document/op IDs | Сообщение отклонено, другие вкладки не затронуты | Unit+E2E |
 | T62 | Злонамеренный payload/большие массивы | Validation caps, нет HTML injection и зависания | Unit |
