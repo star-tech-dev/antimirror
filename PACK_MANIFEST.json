@@ -1,9 +1,9 @@
 {
   "package": "antimirror",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "status": "local-release-candidate-owner-blocked",
   "prepared": "2026-09-13",
-  "buildCommit": "1016390e2e1188ef08a054cf3321da659281730d",
+  "buildCommit": "34afaa2910d8d38f0b1b1abd57f597465e538151",
   "environment": {
     "os": "macOS arm64",
     "node": "24.13.0",
@@ -17,35 +17,36 @@
   "artifacts": [
     {
       "target": "chrome-mv3",
-      "path": ".output/antimirror-0.1.0-chrome.zip",
-      "bytes": 21887,
-      "sha256": "9f365012022ff033c83d5d0ba2b3530f54f6316cc03a38b5ed44c1ef0e3b1e63"
+      "path": ".output/antimirror-1.0.0-chrome.zip",
+      "bytes": 32301,
+      "sha256": "ac2f398011a9000c9962b0a6d6fa58f8b71cb331b9237b22658bdfa4ec6779d8"
     },
     {
       "target": "firefox-mv3",
-      "path": ".output/antimirror-0.1.0-firefox.zip",
-      "bytes": 21879,
-      "sha256": "ca3207243d6a5c03292ce8078b17f45fdf8a659c60efb5416ed5eeabec1e49a7"
+      "path": ".output/antimirror-1.0.0-firefox.zip",
+      "bytes": 32293,
+      "sha256": "be9e68e84b979a43b244aeeac1e327e13b312f2d1297909e933e13341d2e58c2"
     },
     {
       "target": "firefox-sources",
-      "path": ".output/antimirror-0.1.0-sources.zip",
-      "bytes": 71973,
-      "sha256": "7c2cb4e963f87de4733198545007385000bc41ccd727747d02d414dee0628aa9"
+      "path": ".output/antimirror-1.0.0-sources.zip",
+      "bytes": 84711,
+      "sha256": "e2a264033d0602f708a6caf7e9ea7e24826bf768bccd2325646f36358fcbbabb"
     }
   ],
   "verification": {
     "repeatedBuildHashesMatch": true,
-    "runtimeFilesPerTarget": 16,
-    "sourceFiles": 36,
+    "runtimeFilesPerTarget": 20,
+    "sourceFiles": 42,
     "manifestAtArchiveRoot": true,
-    "sourceAllowlist": true
+    "sourceAllowlist": true,
+    "popupLocales": ["en", "ru"],
+    "storeAssetsPrepared": true
   },
   "ownerBlockers": [
     "license",
-    "final product and publisher name",
-    "stable Firefox add-on ID",
-    "support contact and hosted privacy-policy URL",
-    "store accounts, listing assets and submission authorization"
+    "final publisher name",
+    "host the prepared privacy notice",
+    "store accounts and submission authorization"
   ]
 }

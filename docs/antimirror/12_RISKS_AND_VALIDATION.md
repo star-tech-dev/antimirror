@@ -34,3 +34,8 @@ S07 (2026-09-13): доступный публичный VK recording и наст
 чистом Chrome for Testing 153 profile. Generated permissions сопоставлены с фактическим runtime,
 а shipping/source ZIP проверены allowlists и повторными hashes. Firefox manual UI и Edge/Brave
 остаются `NOT_RUN`; owner metadata/license/privacy URL блокируют только публичную submission.
+
+S08 (2026-09-13): стабильный Firefox ID, support homepage, EN/RU selector и store assets прошли
+manifest/unit/Chromium/Firefox native gates. Для Chrome локальная обработка video DOM и URL
+fingerprint раскрывается как website content/browsing activity; Firefox `none` описывает отсутствие
+сбора и передачи наружу. Privacy HTML подготовлен, но его публичный URL ещё не размещён.

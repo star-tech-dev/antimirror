@@ -1,6 +1,6 @@
 # 10. Технический долг
 
-Обновлено во время S07, 2026-09-13.
+Обновлено во время S08, 2026-09-13.
 
 | ID | Severity | Конкретная проблема | Evidence | Почему отложено | Исправление / слайс | Статус |
 |---|---|---|---|---|---|---|
@@ -25,3 +25,6 @@ Edge/Brave, screen reader и дополнительные real-site smoke ост
 
 S07 добавил TD04 как измеренную платформенную границу, а не скрытый PASS. Владельческие данные
 для store submission перечислены в release checklist и не являются техническим долгом runtime.
+
+S08 не добавил runtime-долга. Popup language preference изолирован от session state и trusted
+activation path; store publishing gates остаются операционными задачами владельца.

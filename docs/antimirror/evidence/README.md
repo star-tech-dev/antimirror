@@ -10,3 +10,4 @@
 | S05 UX/compatibility | [S05-2026-09-13](S05-2026-09-13.md) |
 | S06 Hardening/performance | [S06-2026-09-13](S06-2026-09-13.md) |
 | S07 Release candidate | [S07-2026-09-13](S07-2026-09-13.md) |
+| S08 Release polish 1.0 | [S08-2026-09-13](S08-2026-09-13.md) |

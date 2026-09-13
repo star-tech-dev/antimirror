@@ -1,16 +1,20 @@
-# AntiMirror 0.1.0 local release checklist
+# AntiMirror 1.0.0 local release checklist
 
 Prepared 2026-09-13. `PASS` means the named local gate was executed. `NOT_RUN` and `BLOCKED`
 are not release claims.
 
 | Gate | Status | Evidence / action |
 |---|---|---|
-| S00–S06 complete; no critical/high defects | PASS | `docs/antimirror/evidence/` through S06 |
+| S00–S08 complete; no critical/high defects | PASS | `docs/antimirror/evidence/` through S08 |
 | Chrome + Firefox production MV3 manifests | PASS | `pnpm verify:manifests` |
-| Store-level icons 16/32/48/128 and distinct ON/OFF shapes | PASS | generated manifests + PNG inspection |
+| Branded store icons 16/32/48/128 and distinct OFF/ON shapes | PASS | SVG sources, generated manifests + PNG inspection |
+| EN/RU popup selector persists without activation | PASS | unit + Chromium production E2E |
+| Firefox ID `antimirror@star-tech.dev` and support homepage | PASS | generated Firefox manifest |
+| EN/RU listing copy, privacy declarations and permission justifications | PASS | `store-assets/listing/` |
+| Store graphics in required dimensions | PASS | icon, 440×280, 1400×560, EN/RU 1280×800 PNGs inspected |
 | Chrome/Firefox runtime ZIP has root manifest and only allowlisted runtime files | PASS | `pnpm verify:release` |
 | Firefox source ZIP is bounded and reproducible from lockfile | PASS | source allowlist + README build commands |
-| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `1016390e…` |
+| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `34afaa2…` |
 | No fixture/test API, localhost, source maps, keys, remote code or absolute | PASS | `pnpm verify:release`; S06 artifact review |
 | Clean-profile install and manual first activation | PASS | `pnpm test:release-lifecycle` |
 | Forced update/disable boundary | PASS with limitation | effect may remain immediately; page reload returns zero effect |
@@ -20,9 +24,9 @@ are not release claims.
 | Firefox toolbar/fullscreen/RU manual UI | NOT_RUN | unavailable UI automation; skip accepted by user |
 | Edge / Brave smoke | NOT_RUN | compatibility is not advertised as verified |
 | License choice | BLOCKED — owner | No LICENSE exists; owner must select terms before public source publication |
-| Final product/publisher name and stable Firefox add-on ID | BLOCKED — owner | Current `antimirror@local.invalid` is test identity |
-| Support contact and hosted privacy-policy URL | BLOCKED — owner | Local policy draft exists in `PRIVACY.md` |
-| Store accounts, listing assets/declarations and submission | BLOCKED — owner | Separate explicit publication instruction required |
+| Final publisher name | BLOCKED — owner | Product name is AntiMirror; dashboard publisher identity still required |
+| Hosted privacy-policy URL | BLOCKED — owner | Host `store-assets/privacy.html` at the documented public URL |
+| Store accounts and submission | BLOCKED — owner | Separate explicit publication instruction required |
 
 Local RC artifacts may be tested and reviewed. The project is not fully ready for public store
 submission until every owner-blocked row is resolved and the resulting manifests/packages are

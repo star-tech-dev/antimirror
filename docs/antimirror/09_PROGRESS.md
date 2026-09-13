@@ -1,7 +1,7 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S07 завершён как локальный RC.
-**Следующее действие:** решения владельца перед публичной submission.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S08 завершён как локальный RC 1.0.0.
+**Следующее действие:** LICENSE/publisher, hosting privacy page и store submission владельцем.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
@@ -13,6 +13,7 @@
 | S05 UX + compatibility polish | DONE | [S05 evidence](evidence/S05-2026-09-13.md) | Chrome/VK и Firefox native automation PASS; Firefox manual UI NOT_RUN, пропуск принят пользователем |
 | S06 Hardening + performance | DONE | [S06 evidence](evidence/S06-2026-09-13.md) | Exact guards, security/stress automation, restart fix, artifact review |
 | S07 Release candidate | DONE | [S07 evidence](evidence/S07-2026-09-13.md) | Local RC reproducible; public submission BLOCKED владельцем |
+| S08 Release polish 1.0 | DONE | [S08 evidence](evidence/S08-2026-09-13.md) | ID/version/language/brand/listing assets; submission owner-blocked |
 
 Допустимые статусы: TODO, IN_PROGRESS, BLOCKED, DONE. Ручной NOT_RUN gate не превращает
 слайс автоматически в DONE. В evidence отдельно различать implementation и verification.
@@ -24,6 +25,16 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S08: версия 1.0.0, Firefox ID `antimirror@star-tech.dev`, homepage/support `star-tech.dev`,
+сохраняемый EN/RU selector без activation side effects, новый brand и отдельные OFF/ON icons.
+Подготовлены локализованные listing copy/screenshots, promo tiles, permission/privacy declarations
+и статическая privacy page. 43 unit tests, lint/types, обе builds/manifests, Chromium production
+8/8 и Firefox native UX — PASS. Три ZIP дважды byte-identical из `34afaa2…`. Firefox manual UI
+остаётся NOT_RUN по принятому пропуску. До submission нужны LICENSE, publisher name, hosting
+privacy page, store accounts и явное поручение на upload.
+
+## Предыдущий запуск S07
 
 S07: добавлены store-level icons, Chrome/Firefox shipping ZIP, bounded Firefox source ZIP,
 автоматический archive allowlist/SHA256 gate, clean-profile install/update/disable harness,
