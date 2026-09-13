@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0 — release candidate (2026-09-13)
+
+- Added an explicit EN/RU popup selector with a locally persisted preference.
+- Set the stable Firefox ID to `antimirror@star-tech.dev` and support site to `star-tech.dev`.
+- Replaced the placeholder art with a scalable brand icon and distinct OFF/ON toolbar states.
+- Added localized store copy, privacy declarations, screenshots and promotional assets.
+- Updated privacy documentation for local-only processing and no external data transmission.
+
 ## 0.1.0 — release candidate (2026-09-13)
 
 - Manual per-tab mirroring through a localized popup or browser shortcut.

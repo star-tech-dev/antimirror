@@ -67,13 +67,14 @@ embedded players. `webNavigation` — прекращение действия н
 для поддержки; принять окончательное описание/privacy policy; явно поручить публикацию.
 Агент может подготовить артефакты и отчёт, но не публикует автоматически.
 
-## Состояние RC 0.1.0 · 2026-09-13
+## Состояние RC 1.0.0 · 2026-09-13
 
 Локальные Chrome/Firefox MV3 ZIP и обязательный для bundled Firefox build source ZIP собраны
 дважды с одинаковыми SHA256. Manifest в корне архивов, store icons и отсутствие test/dev файлов
 проверяются `pnpm verify:release`. Подробности: [S07 evidence](evidence/S07-2026-09-13.md) и
 [release checklist](../../verification/RELEASE_CHECKLIST.md).
 
-Публичная submission заблокирована отсутствующими решениями владельца: LICENSE, окончательные
-product/publisher name, стабильный Firefox ID, support contact, hosted privacy-policy URL и store
-accounts/listing data. `antimirror@local.invalid` остаётся только локальной test identity.
+Firefox ID зафиксирован как `antimirror@star-tech.dev`, homepage/support —
+`https://star-tech.dev/`. EN/RU listing copy и графические assets подготовлены в `store-assets/`.
+Публичная submission остаётся заблокирована LICENSE, окончательным publisher name, размещением
+готовой privacy notice и доступом к store accounts.

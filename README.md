@@ -4,9 +4,9 @@ Desktop MV3-расширение вручную отражает по гориз
 текущей вкладке. Оно ищет видео в доступных iframe и author open/closed shadow roots, не меняет
 родителей плеера и выключается при навигации, замене media или потере выбранной цели.
 
-Версия `0.1.0` подготовлена как проверенный локальный release candidate. Публикация заблокирована
-до решения владельца о лицензии, названии/издателе, стабильном Firefox add-on ID, support contact
-и URL принятой privacy policy. Репозиторий не публикует и не загружает пакет автоматически.
+Версия `1.0.0` подготовлена как проверенный локальный release candidate. Firefox ID —
+`antimirror@star-tech.dev`, сайт и поддержка — <https://star-tech.dev/>. Публикация заблокирована
+до выбора LICENSE, подтверждения издателя, размещения privacy notice и доступа к store accounts.
 
 ## Использование
 
@@ -14,6 +14,7 @@ Desktop MV3-расширение вручную отражает по гориз
 2. Нажмите иконку AntiMirror. Само открытие popup ничего не включает.
 3. Нажмите **Turn on / Включить** или используйте назначенный browser shortcut.
 4. Повторное действие выключает отражение только в текущей вкладке.
+5. Язык popup переключается через селектор **EN / RU** и сохраняется локально.
 
 Расширение выбирает один fullscreen или наиболее видимый основной video. Практически равные
 кандидаты оставляют режим выключенным. Новый video после потери старого не подхватывается без
@@ -38,6 +39,11 @@ Desktop MV3-расширение вручную отражает по гориз
 данные во внешний backend. В `storage.session` сохраняются только временные per-tab identity,
 фаза операции и SHA-256 fingerprint URL; исходные URL и media source не сохраняются.
 Подробный inventory: [PRIVACY.md](PRIVACY.md).
+
+Chrome требует раскрывать даже локальную обработку website content/browsing activity. Firefox
+получает `data_collection_permissions: none`, поскольку расширение ничего не собирает и не
+передаёт за пределы браузера. Готовая статическая privacy-страница и декларации находятся в
+[`store-assets`](store-assets/).
 
 | Разрешение | Зачем |
 |---|---|
@@ -109,3 +115,5 @@ pnpm test:e2e:feasibility
 
 Текущий release checklist: [verification/RELEASE_CHECKLIST.md](verification/RELEASE_CHECKLIST.md).
 Архитектура, evidence и точные границы находятся в [docs/antimirror](docs/antimirror/).
+EN/RU store copy, permissions justification, promo tiles и localized screenshots подготовлены в
+[`store-assets`](store-assets/README.md); графика воспроизводится командой `pnpm generate:brand-assets`.
