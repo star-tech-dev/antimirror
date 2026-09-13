@@ -15,18 +15,23 @@ describe('protocol runtime guards', () => {
     expect(isContentRequest(addressed)).toBe(true);
     expect(isContentRequest({ ...addressed, frameId: 8 })).toBe(true);
     expect(isContentRequest({ ...addressed, frameId: -1 })).toBe(false);
+    expect(isContentRequest({ ...addressed, documentId: 'x'.repeat(129) })).toBe(false);
+    expect(isContentRequest({ ...addressed, type: { toString: () => 'PREPARE_APPLY' } })).toBe(false);
     const snapshot = { targetId: 't', mediaToken: 'm', visibleArea: 1000, playing: false, fullscreen: false };
     const response = { protocolVersion: 1, type: 'CANDIDATES', requestId: 'r', operationId: 'o',
       documentNonce: 'd', complete: true, closedRoots: true, candidates: [snapshot], visits: 10, frameCount: 0 };
     expect(isContentResponse(response)).toBe(true);
     expect(isContentResponse({ ...response, candidates: Array.from({ length: 33 }, () => snapshot) })).toBe(false);
     expect(isContentResponse({ ...response, candidates: [{ ...snapshot, visibleArea: NaN }] })).toBe(false);
+    expect(isContentResponse({ ...response, candidates: [{ ...snapshot, visibleArea: Number.MAX_VALUE }] })).toBe(false);
     expect(isContentResponse({ ...response, candidates: [{ ...snapshot, playing: 'yes' }] })).toBe(false);
     expect(isContentResponse({ ...response, frameCount: 65 })).toBe(false);
     expect(isContentResponse({ ...response, visits: 25001 })).toBe(false);
     const discover = { protocolVersion:1, type:'DISCOVER', requestId:'r', operationId:'o', documentNonce:'d' };
     expect(isContentRequest({ ...discover, durationMs:3001 })).toBe(false);
     expect(isContentRequest({ ...discover, elementLimit:25001 })).toBe(false);
+    expect(isContentResponse({ protocolVersion: 1, type: 'ERROR', requestId: 'r', code: 'PAGE_SUPPLIED' })).toBe(false);
+    expect(isContentResponse({ protocolVersion: 1, type: 'ERROR', requestId: 'r', code: 'STALE_TARGET' })).toBe(true);
   });
 
   it('accepts only declared target-loss reasons', () => {

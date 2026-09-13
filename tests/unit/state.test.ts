@@ -27,5 +27,15 @@ describe('tab state reducer', () => {
     expect(isTabState(initialState(1))).toBe(true);
     expect(isTabState({ phase: 'on', tabId: 1, revision: 2, operationId: 'o', topDocumentNonce: 'd' })).toBe(false);
     expect(isTabState({ phase: 'off', tabId: '1', revision: 2, reason: 'USER' })).toBe(false);
+    expect(isTabState({ phase: 'off', tabId: -1, revision: 2, reason: 'USER' })).toBe(false);
+    expect(isTabState({ phase: 'off', tabId: 1, revision: 2, reason: 'PAGE_SUPPLIED' })).toBe(false);
+    expect(isTabState({ phase: 'searching', tabId: 1, revision: 2,
+      operationId: 'x'.repeat(129), topDocumentNonce: 'd' })).toBe(false);
+    expect(isTabState({ phase: 'on', tabId: 1, revision: 2, operationId: 'o', topDocumentNonce: 'd',
+      target: { ...target, mediaToken: 'x'.repeat(129) } })).toBe(false);
+    expect(isTabState({ phase: 'on', tabId: 1, revision: 2, operationId: 'o', topDocumentNonce: 'd', target,
+      ancestors: [{ parentFrameId: 0, parentNonce: 'd', childFrameId: 1, childNonce: 'd', token: 'x'.repeat(129) }] })).toBe(false);
+    expect(isTabState({ phase: { toString: () => 'searching' }, tabId: 1, revision: 2,
+      operationId: 'o', topDocumentNonce: 'd' })).toBe(false);
   });
 });

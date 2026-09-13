@@ -15,7 +15,7 @@
     "typecheck": "wxt prepare && tsc --noEmit",
     "lint": "eslint .",
     "test:unit": "vitest run",
-    "test:e2e:chromium": "pnpm build:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/vertical.spec.mjs tests/e2e/discovery.spec.mjs tests/e2e/frames.spec.mjs tests/e2e/lifecycle.spec.mjs tests/e2e/ux-compatibility.spec.mjs",
+    "test:e2e:chromium": "pnpm build:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/vertical.spec.mjs tests/e2e/discovery.spec.mjs tests/e2e/frames.spec.mjs tests/e2e/lifecycle.spec.mjs tests/e2e/ux-compatibility.spec.mjs tests/e2e/hardening.spec.mjs",
     "test:e2e:feasibility": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/foundation.spec.mjs",
     "build:chrome": "wxt build -b chrome --mv3",
     "build:firefox": "wxt build -b firefox --mv3",

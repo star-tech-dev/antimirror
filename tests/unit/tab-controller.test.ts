@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   storageGet: vi.fn(), storageSet: vi.fn(), setIcon: vi.fn(), setTitle: vi.fn(),
-  sendMessage: vi.fn(), executeScript: vi.fn(), getAllFrames: vi.fn(), getTab: vi.fn(),
+  sendMessage: vi.fn(), executeScript: vi.fn(), getAllFrames: vi.fn(), getTab: vi.fn(), queryTabs: vi.fn(),
 }));
 
 vi.mock('wxt/browser', () => ({ browser: {
   storage: { session: { get: mocks.storageGet, set: mocks.storageSet } },
   action: { setIcon: mocks.setIcon, setTitle: mocks.setTitle },
-  tabs: { sendMessage: mocks.sendMessage, get: mocks.getTab },
+  tabs: { sendMessage: mocks.sendMessage, get: mocks.getTab, query: mocks.queryTabs },
   scripting: { executeScript: mocks.executeScript },
   webNavigation: { getAllFrames: mocks.getAllFrames },
 } }));
@@ -40,11 +40,19 @@ beforeEach(() => {
   mocks.setTitle.mockResolvedValue(undefined);
   mocks.executeScript.mockResolvedValue([]);
   mocks.getTab.mockResolvedValue({ id: 3, url: 'https://example.test/' });
+  mocks.queryTabs.mockResolvedValue([]);
   mocks.getAllFrames.mockResolvedValue([{ frameId: 0, parentFrameId: -1 }]);
   mocks.sendMessage.mockImplementation((_tabId: number, message: Record<string, unknown>) => Promise.resolve(reply(message)));
 });
 
 describe('TabController failures', () => {
+  it('presents explicit OFF for tabs missing after a full browser restart', async () => {
+    mocks.queryTabs.mockResolvedValue([{ id: 3 }]);
+    const controller = new TabController();
+    await controller.ready;
+    expect(mocks.setIcon).toHaveBeenCalledWith({ tabId: 3, path: { 16: 'icons/off-16.png', 32: 'icons/off-32.png' } });
+    expect(mocks.setTitle).toHaveBeenCalledWith({ tabId: 3, title: 'AntiMirror — OFF' });
+  });
   it('does not disguise unavailable session storage as an empty successful initialization', async () => {
     mocks.storageGet.mockRejectedValue(new Error('Session read failed'));
     const controller = new TabController();

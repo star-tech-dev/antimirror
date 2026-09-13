@@ -1,7 +1,7 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S05 завершён.
-**Следующий слайс:** S06, hardening и performance.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S06 завершён.
+**Следующий слайс:** S07, release candidate.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
@@ -11,7 +11,7 @@
 | S03 Frame coordination | DONE | [S03 evidence](evidence/S03-2026-09-13.md) | Chromium full flow + Firefox native frame bind/watch |
 | S04 Lifecycle + recovery | DONE | [S04 evidence](evidence/S04-2026-09-13.md) | Media/URL reset, real BFCache/discard/browser restart, natural idle recovery |
 | S05 UX + compatibility polish | DONE | [S05 evidence](evidence/S05-2026-09-13.md) | Chrome/VK и Firefox native automation PASS; Firefox manual UI NOT_RUN, пропуск принят пользователем |
-| S06 Hardening + performance | TODO | — | — |
+| S06 Hardening + performance | DONE | [S06 evidence](evidence/S06-2026-09-13.md) | Exact guards, security/stress automation, restart fix, artifact review |
 | S07 Release candidate | TODO | — | — |
 
 Допустимые статусы: TODO, IN_PROGRESS, BLOCKED, DONE. Ручной NOT_RUN gate не превращает
@@ -24,6 +24,16 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S06: protocol/session guards закрыты exact allowlists и bounded identities; добавлены adversarial
+trust-boundary E2E, OFF mutation stress, 100 ON/OFF циклов и large-DOM profile. Full restart gate
+нашёл и после исправления подтвердил явный OFF action title для восстановленных вкладок при
+пустой native session. 41 unit test, 8 Chromium production E2E, S00 regression, три raw-CDP
+recovery gate, Firefox S00/S02/S03/S05 native automation, обе MV3 builds и artifact audit — PASS.
+ON p95 41.30 ms, OFF p95 8.30 ms; cleanup возвращается к нулю. Firefox natural event-page idle
+и manual UI остаются NOT_RUN в рамках принятого пользователем пропуска. Следующий шаг S07.
+
+## Предыдущий запуск S05
 
 S05 implementation: компактный локализованный popup, native browser command, фактическая
 shortcut-подсказка, отдельные permission/media/playback/PiP/effect-loss reasons и расширенная

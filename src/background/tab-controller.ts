@@ -31,7 +31,15 @@ export class TabController {
   }
 
   private async recover(tabId?: number): Promise<void> {
-    if (tabId === undefined) await Promise.all(this.store.pendingList().map(state => this.retryCleanup(state.tabId)));
+    if (tabId === undefined) {
+      await Promise.all(this.store.pendingList().map(state => this.retryCleanup(state.tabId)));
+      const tabs = await browser.tabs.query({});
+      await Promise.all(tabs.flatMap(tab => {
+        if (tab.id === undefined) return [];
+        const state = this.getState(tab.id);
+        return state.phase === 'off' ? [presentState(state).catch(() => undefined)] : [];
+      }));
+    }
     await Promise.all(this.store.list().filter(state => tabId === undefined || state.tabId === tabId).map(async saved => {
       if (saved.phase === 'off') return;
       try {

@@ -1,6 +1,6 @@
 # 10. Технический долг
 
-Обновлено во время S05, 2026-09-13.
+Обновлено во время S06, 2026-09-13.
 
 | ID | Severity | Конкретная проблема | Evidence | Почему отложено | Исправление / слайс | Статус |
 |---|---|---|---|---|---|---|
@@ -16,3 +16,8 @@ Chrome blob/data frame-tree limitation описан в coverage/evidence как 
 
 Firefox product flow/idle, реальные сайты и остальные непроведённые тесты перечислены в evidence
 как verification gaps, а не как доказанные баги. Не снимать ограничения по одному unit mock.
+
+S06 не открыл нового незакрытого implementation debt. Найденный restart action-title defect
+исправлен и закрыт unit + full browser-process restart gate. Firefox natural event-page idle,
+Edge/Brave, screen reader и дополнительные real-site smoke остаются verification gaps S07,
+а не известными runtime-дефектами.

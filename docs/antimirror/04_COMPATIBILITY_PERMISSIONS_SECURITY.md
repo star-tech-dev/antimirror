@@ -95,6 +95,11 @@ native content protocol. Sandbox сохраняется как есть; зап�
 - Не отдавать содержимое других вкладок отвечающему frame.
 - Навигация и отозванные permissions приоритетнее поздней успешной команды.
 
+S06 (2026-09-13): runtime и persisted-state guards используют exact allowlists и bounded
+identities без object-toString coercion. Production security E2E подтвердил, что page messages,
+поддельный bind, content-origin UI command и malformed/oversized payload не включают режим.
+Release artifact review не нашёл внешних API, test endpoints, remote code, secrets или app logs.
+
 ## Приватность
 
 Расширение работает локально. Нет внешних запросов, аналитики, истории посещений, кадров,
@@ -113,9 +118,9 @@ Incognito не включать автоматически; если польз�
 
 | Среда | Цель v1 | Статус при создании пакета |
 |---|---|---|
-| Desktop Chrome stable | Основной release target | Реализация и live тесты ещё не выполнены |
+| Desktop Chrome stable | Основной release target | Chrome for Testing 153: production automation и VK smoke PASS |
 | Desktop Edge / Brave stable | Chromium-совместимость с отдельным smoke | Не подтверждена |
-| Desktop Firefox stable | Отдельная MV3 сборка и проверка extension APIs | Не подтверждена |
+| Desktop Firefox stable | Отдельная MV3 сборка и проверка extension APIs | Firefox 155: native protocol/frame/UX automation PASS; manual UI NOT_RUN |
 | Firefox ESR | Только после фактического прогонов выбранной версии | Не обещана заранее |
 | Opera / Yandex / другие Chromium | Возможная совместимость | Не рекламировать без smoke |
 | Safari, Android, iOS | Вне v1 | Не поддерживаются пакетом |

@@ -3,81 +3,62 @@
 ## Где остановились · 2026-09-13
 
 S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`, S03 `935e413`, S04 `3b26990`,
-S05 implementation `96b332e`. S05 DONE; подробности —
-[S05 evidence](evidence/S05-2026-09-13.md). Firefox manual UI остался NOT_RUN,
-его пропуск явно принят пользователем 2026-09-13.
+S05 implementation `96b332e`, S05 docs `2fbfe82`. S06 DONE; подробности —
+[S06 evidence](evidence/S06-2026-09-13.md). Рабочее дерево S06 должно быть продолжено с
+коммита, указанного в `git log` после этой передачи.
 
 ## Следующее точное действие
 
-Прочитать `slices/S06_HARDENING_PERFORMANCE.md` и относящиеся к нему security/performance
-сценарии. Выполнить один законченный S06 слайс: проверить adversarial payload limits,
-100 ON/OFF cleanup cycles, mutation-heavy OFF и измеримые discovery budgets; не возвращаться
-к Firefox manual S05 без нового поручения или обнаруженного дефекта.
+Прочитать `slices/S07_RELEASE_CANDIDATE.md` и выполнить release-candidate checklist. Проверить
+финальные unpacked/packaged artifacts, versioning, release docs и доступные обязательные browser
+smoke. Не публиковать и не push без отдельного поручения. Firefox natural event-page idle и
+manual UI остаются честными `NOT_RUN`; пользователь разрешил пропустить недоступную Firefox
+проверку, поэтому не повторять тот же неработающий UI automation без новой возможности.
 
-## Что добавил S05
+## Что добавил S06
 
-Popup имеет одну toggle-control, a11y состояния и EN/RU native catalogs. Он показывает реальное
-назначение browser command либо явную unassigned-подсказку. Background синхронно регистрирует
-trusted `toggle-mirror` и переключает только активную вкладку через TabController.
+Protocol и persisted session guards теперь используют exact allowlists для types/reasons,
+safe integer IDs и строки длиной 1–128. Неизвестные error reasons, object-toString coercion,
+oversized identities/areas, отрицательные tab IDs и malformed ancestor records отклоняются.
 
-Lifecycle reports теперь различают MEDIA_CHANGED, PLAYBACK_ENDED, PIP_UNSUPPORTED и EFFECT_LOST;
-permissions revoke даёт PERMISSION_DENIED. Chromium matrix проверяет additive transforms,
-`!important` conflict, site animation, current inline style после OFF, origin/backface, controls,
-external overlay, PiP и fullscreen. Firefox production harness проверяет i18n/command declaration
-и четыре renderer cases. Chrome physical shortcut и реальный публичный VK player прошли.
+`tests/e2e/hardening.spec.mjs` проверяет page/content trust boundary, forged bind, malformed и
+oversized extension messages, отсутствие MAIN-world capability, OFF mutation storm, ресурсы ON,
+100 циклов ON/OFF и большой DOM. В Chromium 153: ON p95 41.30 ms, OFF p95 8.30 ms; cleanup
+возвращает observers/IO/timers/animations к нулю. Large DOM завершился за 103.62 ms с 25 001
+TreeWalker calls (25k protocol budget + terminal call), корректным incomplete и 0 ms long tasks.
 
-## Что добавил S04
-
-`target-session.ts`: локальный snapshot media до PREPARE, source observer и события
-emptied/loadstart/error/ended. O(1) watchdog ≤1Hz только выбранного video, без BG keepalive;
-hidden polling paused, visibilitychange check. Own Animation cancellation снимает сессию.
-Pagehide очищает effect/discovery/bindings и tombstones старые операции, но оставляет
-пассивный dispatcher: настоящий BFCache остаётся OFF и допускает новое ручное включение.
-
-`TabController`: top URL fingerprint, упорядоченные history/hash fences, немедленная отмена
-pending operations при relevant navigation, discard/replace/remove. Target сохраняется в
-applying ДО PREPARE. Startup/GET_STATE recovery проверяет exact committed target и все
-committed ancestor watchers, top nonce/URL, не сканирует и не повторяет COMMIT.
-Старые APPLIED/ошибки не выключают более новую операцию.
-
-`SessionStore`: native `antimirror.tabs.v1` и `antimirror.cleanup.v1`.
-OFF атомарно сохраняет старую identity для CANCEL retry; до очистки новая цель не выбирается.
-Отсутствующий frame в native tree подтверждает cleanup. Невозможность прочитать storage
-не маскируется успешной пустой инициализацией; popup получает ошибку чтения до нового boot.
-URLs/media-src/DOM refs не сериализуются.
-
-S03 deep/frame discovery и ограничения неизменны: 4 concurrent scans, 64 frames, 25k visits/
-document, 100k/tab, 3s; selected chain watch lease. Native blob/data frame-tree omission в
-Chrome даёт честный FRAMES_UNAVAILABLE; Firefox related-frame harness проходит.
+Full browser restart обнаружил, что пустая после рестарта native session оставляла базовый
+action title `AntiMirror`. Startup recovery теперь выставляет tab-specific `AntiMirror — OFF`
+для вкладок без активного state. Persisted ON никогда не показывается до exact reconciliation
+target/ancestor и ACK. Unit и повторный full-process restart подтверждают исправление.
 
 ## Проверено
 
-40 unit tests, lint/types, Chrome+Firefox MV3 build и manifest audit — PASS.
-Chromium 153.0.8010.12: 6 production tests / 5 specs S01–S05, включая renderer/status matrix;
-ручной toolbar shortcut/popup и публичный VK player — PASS. Raw CDP S04 gates: natural idle,
-discard и полный browser restart — PASS. Firefox 155.0.1: native content/frame gates и S05
-renderer/i18n/command automation — PASS. Firefox action-popup/fullscreen/RU manual UI — NOT_RUN,
-пропуск принят пользователем и не считается PASS.
+`pnpm lint`, `pnpm typecheck`, 41 unit test, Chrome+Firefox production MV3 builds и manifest
+audit — PASS. Chromium 153: 8 production tests / 6 specs S01–S06 и S00 feasibility — PASS.
+Raw CDP production gates natural idle, discard и full browser restart — PASS. Firefox 155.0.1:
+S00 native session/capabilities, S02 roots, S03 девять frame cases и S05 renderer/i18n/command —
+PASS. Artifact review: нет app logs/network/eval/HTML injection/storage.local, test endpoints,
+source maps, keys, remote code или лишних permissions. Критических/высоких открытых дефектов
+по отдельному `antimirror-review` checklist не найдено.
 
-## Команды и особенности harness
+## Команды и harness
 
-`pnpm lint`; `pnpm typecheck`; `pnpm test:unit`; `pnpm build:chrome`;
-`pnpm build:firefox`; `pnpm verify:manifests`.
-`FIXTURE_PORT=4673 FIXTURE_FRAME_PORT=4674 pnpm test:e2e:chromium`.
+Основной набор: `pnpm lint`; `pnpm typecheck`; `pnpm test:unit`; `pnpm build:chrome`;
+`pnpm build:firefox`; `pnpm verify:manifests`; затем на свободных ports
+`FIXTURE_PORT=5573 FIXTURE_FRAME_PORT=5574 pnpm test:e2e:chromium`.
 
-Для raw CDP и Firefox сначала отдельный
-`FIXTURE_PORT=4773 FIXTURE_FRAME_PORT=4774 pnpm fixtures`, затем с теми же env:
-`pnpm test:recovery-idle`, `pnpm test:discard`, `pnpm test:browser-restart`,
-`pnpm test:frames:firefox`. Native root regression: `pnpm test:discovery:firefox`.
-
-Playwright BFCache: ignoreDefaultArgs только для disable-back-forward-cache, goBack ждёт commit,
-поскольку BFCache не генерирует load. Реальный discard выполняется raw CDP без target renderer
-debugger: Chrome 153 macOS падал при discard Playwright-attached страницы. Не менять production
-ради harness. Обычная popup.html вкладка по-прежнему не имеет права SET_ENABLED (sender.tab).
+Для recovery запустить отдельный `pnpm fixtures` с теми же ports и выполнить
+`pnpm test:recovery-idle`, `pnpm test:discard`, `pnpm test:browser-restart`. Firefox native
+regression: `pnpm test:e2e:firefox`, `pnpm test:discovery:firefox`,
+`pnpm test:frames:firefox`, `pnpm test:ux:firefox`. Browser harness использует только временные
+профили; raw CDP не подключается к production worker в natural-idle gate.
 
 ## Ограничения / долг
 
-TD02 и TD03 CLOSED. Для v1 native fullscreen video в Chromium документирован как безопасный
-TRANSFORM_CONFLICT; fullscreen container проходит. Firefox toolbar/RU UI, full recovery/
-site-access UI, Edge/Brave — verification gaps, не заявленные PASS.
-Natural idle, BFCache и browser restart были автоматизированными browser gates, не manual smoke.
+TD01–TD03 CLOSED; нового implementation debt в S06 нет. Firefox natural event-page idle нельзя
+достоверно принудить текущим native harness и он остаётся `NOT_RUN`; session roundtrip PASS.
+Firefox toolbar/fullscreen/RU manual UI, Edge/Brave, screen reader и дополнительные реальные
+сайты — verification gaps для S07, не заявленные PASS. Native fullscreen самого video в
+Chromium остаётся документированной безопасной границей `TRANSFORM_CONFLICT`; fullscreen
+container работает. Chromium blob/data frame-tree omission остаётся `FRAMES_UNAVAILABLE`.

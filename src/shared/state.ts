@@ -1,4 +1,4 @@
-import { isFrameId, type OffReason, type TargetRef, type FrameBindingRef } from './protocol';
+import { isFrameBindingRef, isId, isOffReason, isTargetRef, type OffReason, type TargetRef, type FrameBindingRef } from './protocol';
 
 export interface Identity {
   tabId: number;
@@ -47,19 +47,16 @@ export function isTabState(value: unknown): value is TabState {
   if (typeof value !== 'object' || value === null) return false;
   const state = value as Record<string, unknown>;
   if (state.urlFingerprint !== undefined && (typeof state.urlFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(state.urlFingerprint))) return false;
-  if (state.coverageWarning !== undefined && !['OPEN_ROOTS_ONLY', 'FRAMES_UNAVAILABLE'].includes(String(state.coverageWarning))) return false;
+  if (state.coverageWarning !== undefined &&
+      (typeof state.coverageWarning !== 'string' || !['OPEN_ROOTS_ONLY', 'FRAMES_UNAVAILABLE'].includes(state.coverageWarning))) return false;
   if (state.ancestors !== undefined && (!Array.isArray(state.ancestors) || state.ancestors.length > 64 ||
-      !state.ancestors.every(item => typeof item === 'object' && item !== null && isFrameId(item.parentFrameId) &&
-        isFrameId(item.childFrameId) && typeof item.parentNonce === 'string' && typeof item.childNonce === 'string' && typeof item.token === 'string'))) return false;
+      !state.ancestors.every(isFrameBindingRef))) return false;
   if (!Number.isSafeInteger(state.tabId) || !Number.isSafeInteger(state.revision) ||
-      (state.revision as number) < 0) return false;
-  if (state.phase === 'off') return typeof state.reason === 'string';
-  if (!['searching', 'applying', 'on', 'disabling'].includes(String(state.phase)) ||
-      typeof state.operationId !== 'string' || typeof state.topDocumentNonce !== 'string') return false;
+      (state.tabId as number) < 0 || (state.revision as number) < 0) return false;
+  if (state.phase === 'off') return isOffReason(state.reason);
+  if (typeof state.phase !== 'string' || !['searching', 'applying', 'on', 'disabling'].includes(state.phase) ||
+      !isId(state.operationId) || !isId(state.topDocumentNonce)) return false;
   if (state.phase === 'searching') return true;
   if (state.phase === 'disabling' && state.target === undefined) return true;
-  if (typeof state.target !== 'object' || state.target === null) return false;
-  const target = state.target as Record<string, unknown>;
-  return isFrameId(target.frameId) && typeof target.documentNonce === 'string' &&
-    typeof target.targetId === 'string' && typeof target.mediaToken === 'string';
+  return isTargetRef(state.target);
 }

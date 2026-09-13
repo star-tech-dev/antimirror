@@ -1,22 +1,12 @@
 export const PROTOCOL_VERSION = 1 as const;
 
-export type OffReason =
-  | 'INITIAL'
-  | 'USER'
-  | 'NO_VIDEO'
-  | 'INCOMPLETE_COVERAGE'
-  | 'FRAMES_UNAVAILABLE'
-  | 'PERMISSION_DENIED'
-  | 'TARGET_LOST'
-  | 'MEDIA_CHANGED'
-  | 'PLAYBACK_ENDED'
-  | 'PIP_UNSUPPORTED'
-  | 'EFFECT_LOST'
-  | 'AMBIGUOUS_TARGET'
-  | 'NAVIGATION'
-  | 'AGENT_UNAVAILABLE'
-  | 'APPLY_FAILED'
-  | 'TRANSFORM_CONFLICT';
+export const OFF_REASONS = [
+  'INITIAL', 'USER', 'NO_VIDEO', 'INCOMPLETE_COVERAGE', 'FRAMES_UNAVAILABLE',
+  'PERMISSION_DENIED', 'TARGET_LOST', 'MEDIA_CHANGED', 'PLAYBACK_ENDED',
+  'PIP_UNSUPPORTED', 'EFFECT_LOST', 'AMBIGUOUS_TARGET', 'NAVIGATION',
+  'AGENT_UNAVAILABLE', 'APPLY_FAILED', 'TRANSFORM_CONFLICT',
+] as const;
+export type OffReason = typeof OFF_REASONS[number];
 
 export interface TargetRef {
   frameId: number;
@@ -62,15 +52,14 @@ export interface CandidateSnapshot extends CandidateRef {
   fullscreen: boolean;
 }
 
-export type TargetLostReason = 'NAVIGATION' | 'MEDIA_CHANGED' | 'PLAYBACK_ENDED' | 'PIP_UNSUPPORTED' | 'EFFECT_LOST';
+const TARGET_LOST_REASONS = ['NAVIGATION', 'MEDIA_CHANGED', 'PLAYBACK_ENDED', 'PIP_UNSUPPORTED', 'EFFECT_LOST'] as const;
+export type TargetLostReason = typeof TARGET_LOST_REASONS[number];
 export type TargetLost = { protocolVersion: 1; type: 'TARGET_LOST'; operationId: string; reason?: TargetLostReason } & TargetRef;
 
 export function isTargetLost(value: unknown): value is TargetLost {
   return isRecord(value) && value.protocolVersion === 1 && value.type === 'TARGET_LOST' &&
-    isFrameId(value.frameId) && isId(value.operationId) && isId(value.documentNonce) &&
-    isId(value.targetId) && isId(value.mediaToken) && (value.reason === undefined ||
-      (typeof value.reason === 'string' &&
-        ['NAVIGATION', 'MEDIA_CHANGED', 'PLAYBACK_ENDED', 'PIP_UNSUPPORTED', 'EFFECT_LOST'].includes(value.reason)));
+    isId(value.operationId) && isTargetRef(value) &&
+    (value.reason === undefined || isOneOf(value.reason, TARGET_LOST_REASONS));
 }
 
 export type FrameLost = { protocolVersion: 1; type: 'FRAME_LOST'; operationId: string; documentNonce: string; token: string; reason?: 'NAVIGATION' };
@@ -94,8 +83,26 @@ function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null;
 }
 
-function isId(value: unknown): value is string {
+export function isId(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= 128;
+}
+
+function isOneOf<T extends string>(value: unknown, allowed: readonly T[]): value is T {
+  return typeof value === 'string' && allowed.includes(value as T);
+}
+
+export function isTargetRef(value: unknown): value is TargetRef {
+  return isRecord(value) && isFrameId(value.frameId) && isId(value.documentNonce) &&
+    (value.documentId === undefined || isId(value.documentId)) && isId(value.targetId) && isId(value.mediaToken);
+}
+
+export function isFrameBindingRef(value: unknown): value is FrameBindingRef {
+  return isRecord(value) && isFrameId(value.parentFrameId) && isId(value.parentNonce) &&
+    isFrameId(value.childFrameId) && isId(value.childNonce) && isId(value.token);
+}
+
+export function isOffReason(value: unknown): value is OffReason {
+  return isOneOf(value, OFF_REASONS);
 }
 
 export function isFrameId(value: unknown): value is number {
@@ -110,25 +117,25 @@ export function isUiRequest(value: unknown): value is UiRequest {
 }
 
 export function isContentRequest(value: unknown): value is ContentRequest {
-  if (!isRecord(value) || value.protocolVersion !== PROTOCOL_VERSION || !isId(value.requestId)) return false;
+  if (!isRecord(value) || value.protocolVersion !== PROTOCOL_VERSION || !isId(value.requestId) || typeof value.type !== 'string') return false;
   if (value.type === 'PROBE') return true;
   if (value.type === 'CANCEL_OPERATION') return isId(value.operationId);
   if (value.type === 'DISCOVER') return isId(value.operationId) && isId(value.documentNonce) &&
     (value.durationMs === undefined || (Number.isInteger(value.durationMs) && (value.durationMs as number) > 0 && (value.durationMs as number) <= 3000)) &&
     (value.elementLimit === undefined || (Number.isInteger(value.elementLimit) && (value.elementLimit as number) > 0 && (value.elementLimit as number) <= 25000));
   if (value.type === 'RELEASE_DISCOVERY') return isId(value.operationId) && isId(value.documentNonce);
-  if (['BIND_CHILD', 'EMIT_BIND', 'READ_BIND', 'WATCH_CHILD', 'COMMIT_WATCH', 'GET_WATCH_STATE'].includes(String(value.type))) {
+  if (['BIND_CHILD', 'EMIT_BIND', 'READ_BIND', 'WATCH_CHILD', 'COMMIT_WATCH', 'GET_WATCH_STATE'].includes(value.type)) {
     return isId(value.operationId) && isId(value.documentNonce) && isId(value.token) &&
       (value.type !== 'BIND_CHILD' || (isFrameId(value.childFrameId) && isId(value.childNonce)));
   }
-  if (!['PREPARE_APPLY', 'COMMIT', 'DISABLE', 'GET_TARGET_STATE'].includes(String(value.type))) return false;
-  return isId(value.operationId) && isFrameId(value.frameId) && isId(value.documentNonce) &&
-    isId(value.targetId) && isId(value.mediaToken);
+  if (!['PREPARE_APPLY', 'COMMIT', 'DISABLE', 'GET_TARGET_STATE'].includes(value.type)) return false;
+  return isId(value.operationId) && isTargetRef(value);
 }
 
 export function isContentResponse(value: unknown): value is ContentResponse {
   if (!isRecord(value) || value.protocolVersion !== PROTOCOL_VERSION || !isId(value.requestId) || !isId(value.type)) return false;
-  if (value.type === 'ERROR') return isId(value.code);
+  if (value.type === 'ERROR') return isOffReason(value.code) ||
+    isOneOf(value.code, ['STALE_OPERATION', 'STALE_DOCUMENT', 'STALE_TARGET'] as const);
   if (value.type === 'PROBED') return isId(value.documentNonce);
   if (value.type === 'CANCELLED') return isId(value.operationId) && isId(value.documentNonce);
   if (['BOUND', 'BIND_READY', 'BIND_SENT', 'WATCHING', 'WATCH_COMMITTED', 'RELEASED'].includes(value.type)) {
@@ -142,7 +149,8 @@ export function isContentResponse(value: unknown): value is ContentResponse {
       Number.isInteger(value.frameCount) && (value.frameCount as number) >= 0 && (value.frameCount as number) <= 64 &&
       value.candidates.length <= 32 && value.candidates.every(candidate =>
         isRecord(candidate) && isId(candidate.targetId) && isId(candidate.mediaToken) &&
-        typeof candidate.visibleArea === 'number' && Number.isFinite(candidate.visibleArea) && candidate.visibleArea > 0 &&
+        typeof candidate.visibleArea === 'number' && Number.isFinite(candidate.visibleArea) &&
+        candidate.visibleArea > 0 && candidate.visibleArea <= Number.MAX_SAFE_INTEGER &&
         typeof candidate.playing === 'boolean' && typeof candidate.fullscreen === 'boolean');
   }
   return ['APPLIED', 'COMMITTED', 'DISABLED'].includes(value.type) && isId(value.operationId) &&

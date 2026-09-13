@@ -121,6 +121,11 @@ ON на уже готовом простом/embedded player p95 ≤500 ms; сл
 Один собственный scan task не должен создавать long task >50 ms. Сравнивать 20 и более
 итераций с baseline страницы, отдельно отмечать startup, закрытые roots, iframe и нагрузку.
 
+S06 baseline на Chrome 153/macOS arm64: 100 циклов дали ON p95 41.30 ms и OFF p95 8.30 ms;
+OFF mutation storm не создал прикладных observers/timers/DOM visits; large-DOM scan завершился
+за 103.62 ms с bounded incomplete и без зарегистрированного long task. Полные условия и
+instrumentation описаны в [S06 evidence](evidence/S06-2026-09-13.md).
+
 Не писать «CPU 0%» по одному взгляду в task manager. Для локального watchdog отдельно
 измерять вызовы/затраты и отсутствие wake-up background. Сам fixture MediaStream рисует
 тестовую картинку — его нагрузка не относится к расширению, поэтому нужен baseline без него.
