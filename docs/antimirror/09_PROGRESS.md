@@ -1,7 +1,7 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S05 реализован, Firefox manual gate открыт.
-**Следующий слайс:** завершить S05; не начинать S06 до честного решения manual gate.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S05 завершён.
+**Следующий слайс:** S06, hardening и performance.
 
 | Слайс | Статус | Evidence | Примечание |
 |---|---|---|---|
@@ -10,7 +10,7 @@
 | S02 Deep discovery | DONE | [S02 evidence](evidence/S02-2026-09-13.md) | Production Chromium + Firefox native roots; budgets/cleanup |
 | S03 Frame coordination | DONE | [S03 evidence](evidence/S03-2026-09-13.md) | Chromium full flow + Firefox native frame bind/watch |
 | S04 Lifecycle + recovery | DONE | [S04 evidence](evidence/S04-2026-09-13.md) | Media/URL reset, real BFCache/discard/browser restart, natural idle recovery |
-| S05 UX + compatibility polish | IN_PROGRESS | [S05 evidence](evidence/S05-2026-09-13.md) | Implementation/Chrome/VK/Firefox native automation PASS; Firefox toolbar/RU UI NOT_RUN |
+| S05 UX + compatibility polish | DONE | [S05 evidence](evidence/S05-2026-09-13.md) | Chrome/VK и Firefox native automation PASS; Firefox manual UI NOT_RUN, пропуск принят пользователем |
 | S06 Hardening + performance | TODO | — | — |
 | S07 Release candidate | TODO | — | — |
 
@@ -23,16 +23,17 @@
 Git status был чист; старого extension runtime, package.json и LICENSE не было.
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
-## Текущий запуск S05
+## Последний завершённый запуск
 
 S05 implementation: компактный локализованный popup, native browser command, фактическая
 shortcut-подсказка, отдельные permission/media/playback/PiP/effect-loss reasons и расширенная
 renderer matrix. 40 unit tests, lint/types, обе MV3 builds/manifest audit, 6 Chromium E2E,
 Firefox production renderer/i18n harness, ручной Chrome shortcut/popup и публичный VK player —
-PASS. Headed Firefox открылся в Selenium, но UI automation не смог подключиться к окну;
-Firefox toolbar/fullscreen/RU UI остаются NOT_RUN, поэтому S05 пока IN_PROGRESS.
+PASS. Headed Firefox открылся в Selenium, но UI automation не смог подключиться к окну.
+Firefox toolbar/fullscreen/RU UI остаются честно отмечены NOT_RUN; пользователь явно принял
+этот verification gap 2026-09-13, поэтому S05 закрыт без заявления о Firefox manual PASS.
 
-## Предыдущий завершённый запуск
+## Предыдущий запуск S04
 
 S04: media/session ownership, history/hash fences, BFCache-safe dispatcher, native tab lifecycle,
 GET_TARGET_STATE/GET_WATCH_STATE reconciliation и persistent pending cleanup. Same URL/пауза/

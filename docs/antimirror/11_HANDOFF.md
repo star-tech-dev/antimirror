@@ -2,18 +2,19 @@
 
 ## Где остановились · 2026-09-13
 
-S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`, S03 `935e413`, S04 `3b26990`.
-S05 implementation и Chrome/VK gates готовы; подробности —
-[S05 evidence](evidence/S05-2026-09-13.md). Слайс остаётся IN_PROGRESS из-за Firefox manual gate.
+S00 `d64a05c`, S01 `0b21080`, S02 `8d6ec0a`, S03 `935e413`, S04 `3b26990`,
+S05 implementation `96b332e`. S05 DONE; подробности —
+[S05 evidence](evidence/S05-2026-09-13.md). Firefox manual UI остался NOT_RUN,
+его пропуск явно принят пользователем 2026-09-13.
 
 ## Следующее точное действие
 
-В изолированном Firefox вручную проверить настоящий toolbar popup/shortcut, native fullscreen
-controls и русскую UI locale. CUA не смог подключиться к Selenium-окну (`timeoutReached`),
-поэтому использовать другой доступный headed harness или повторить на машине с доступным UI.
-Если дефектов нет, закрыть TD03 и S05; S06 до этого не начинать.
+Прочитать `slices/S06_HARDENING_PERFORMANCE.md` и относящиеся к нему security/performance
+сценарии. Выполнить один законченный S06 слайс: проверить adversarial payload limits,
+100 ON/OFF cleanup cycles, mutation-heavy OFF и измеримые discovery budgets; не возвращаться
+к Firefox manual S05 без нового поручения или обнаруженного дефекта.
 
-## Что добавил текущий S05
+## Что добавил S05
 
 Popup имеет одну toggle-control, a11y состояния и EN/RU native catalogs. Он показывает реальное
 назначение browser command либо явную unassigned-подсказку. Background синхронно регистрирует
@@ -51,13 +52,12 @@ Chrome даёт честный FRAMES_UNAVAILABLE; Firefox related-frame harness
 
 ## Проверено
 
-37 unit tests, lint/types, Chrome+Firefox MV3 build и manifest audit — PASS.
-Chromium 153.0.8010.12: 4 production specs S01–S04; real BFCache persisted=true,
-same/new URL, media events/identity, late/lost ACK, reload/navigation, cleanup и host revoke.
-Raw CDP: natural worker idle 40s без worker debugger, тот же target/op/ancestor+ON icon;
-native discard/restore; полный browser process restart с тем же профилем и восстановленной
-вкладкой — PASS. Firefox 155.0.1: 9 native frame/content scenarios — PASS.
-Это не full Firefox action-popup/controller/idle gate.
+40 unit tests, lint/types, Chrome+Firefox MV3 build и manifest audit — PASS.
+Chromium 153.0.8010.12: 6 production tests / 5 specs S01–S05, включая renderer/status matrix;
+ручной toolbar shortcut/popup и публичный VK player — PASS. Raw CDP S04 gates: natural idle,
+discard и полный browser restart — PASS. Firefox 155.0.1: native content/frame gates и S05
+renderer/i18n/command automation — PASS. Firefox action-popup/fullscreen/RU manual UI — NOT_RUN,
+пропуск принят пользователем и не считается PASS.
 
 ## Команды и особенности harness
 
@@ -77,7 +77,7 @@ debugger: Chrome 153 macOS падал при discard Playwright-attached стр�
 
 ## Ограничения / долг
 
-TD02 CLOSED. TD03 OPEN только до Firefox manual fullscreen/control gate: Chromium native
-fullscreen video безопасно отклоняется, fullscreen figure проходит; renderer/PiP matrix готова.
-Firefox toolbar/RU UI, full recovery/site-access UI, Edge/Brave — NOT_RUN.
+TD02 и TD03 CLOSED. Для v1 native fullscreen video в Chromium документирован как безопасный
+TRANSFORM_CONFLICT; fullscreen container проходит. Firefox toolbar/RU UI, full recovery/
+site-access UI, Edge/Brave — verification gaps, не заявленные PASS.
 Natural idle, BFCache и browser restart были автоматизированными browser gates, не manual smoke.
