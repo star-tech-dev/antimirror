@@ -10,6 +10,9 @@ for (const target of ['chrome', 'firefox']) {
   assert.deepEqual(m.host_permissions, ['http://*/*', 'https://*/*']);
   assert.ok(m.action.default_popup);
   assert.equal(m.action.default_icon['16'], 'icons/off-16.png');
+  assert.deepEqual(m.icons, {
+    16: 'icons/off-16.png', 32: 'icons/off-32.png', 48: 'icons/off-48.png', 128: 'icons/off-128.png',
+  });
   assert.equal(m.action.default_title, 'AntiMirror');
   assert.deepEqual(m.commands['toggle-mirror'].suggested_key, { default: 'Alt+Shift+M', mac: 'MacCtrl+Shift+M' });
   assert.equal(m.commands['toggle-mirror'].description, '__MSG_commandDescription__');

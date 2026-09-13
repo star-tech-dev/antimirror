@@ -19,6 +19,9 @@
     "test:e2e:feasibility": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache playwright test tests/e2e/foundation.spec.mjs",
     "build:chrome": "wxt build -b chrome --mv3",
     "build:firefox": "wxt build -b firefox --mv3",
+    "zip:chrome": "wxt zip -b chrome --mv3",
+    "zip:firefox": "wxt zip -b firefox --mv3 --sources",
+    "verify:release": "node scripts/verify-release.mjs",
     "build:spike:chrome": "ANTIMIRROR_SPIKE=1 wxt build -b chrome --mv3",
     "build:spike:firefox": "ANTIMIRROR_SPIKE=1 wxt build -b firefox --mv3",
     "verify:manifests": "node scripts/verify-manifests.mjs",
@@ -30,7 +33,8 @@
     "test:worker-idle": "pnpm build:spike:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-worker-idle.mjs",
     "test:recovery-idle": "pnpm build:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-recovery-idle.mjs",
     "test:discard": "pnpm build:chrome && ANTIMIRROR_LIFECYCLE=discard PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-recovery-idle.mjs",
-    "test:browser-restart": "pnpm build:chrome && ANTIMIRROR_LIFECYCLE=restart PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-recovery-idle.mjs"
+    "test:browser-restart": "pnpm build:chrome && ANTIMIRROR_LIFECYCLE=restart PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-recovery-idle.mjs",
+    "test:release-lifecycle": "pnpm build:chrome && PLAYWRIGHT_BROWSERS_PATH=.browser-cache node scripts/test-release-lifecycle.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

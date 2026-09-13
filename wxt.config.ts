@@ -3,9 +3,17 @@ const spike = process.env.ANTIMIRROR_SPIKE === '1';
 export default defineConfig({
   outDir: spike ? '.output-spike' : '.output',
   entrypointsDir: spike ? 'testing/extension/entrypoints' : 'entrypoints',
+  zip: {
+    includeSources: [
+      '.node-version', 'README.md', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json',
+      'wxt.config.ts', 'entrypoints/**', 'src/**', 'public/**',
+    ],
+    dotSources: true,
+  },
   manifest: {
     name: spike ? 'AntiMirror Feasibility (TEST ONLY)' : '__MSG_extensionName__',
     default_locale: 'en',
+    icons: { 16: 'icons/off-16.png', 32: 'icons/off-32.png', 48: 'icons/off-48.png', 128: 'icons/off-128.png' },
     action: { default_icon: { 16: 'icons/off-16.png', 32: 'icons/off-32.png' }, default_title: spike ? 'AntiMirror — OFF' : 'AntiMirror' },
     description: spike ? 'Test-only AntiMirror capability probe.' : '__MSG_extensionDescription__',
     commands: spike ? undefined : {
