@@ -14,7 +14,8 @@ are not release claims.
 | Store graphics in required dimensions | PASS | icon, 440×280, 1400×560, EN/RU 1280×800 PNGs inspected |
 | Chrome/Firefox runtime ZIP has root manifest and only allowlisted runtime files | PASS | `pnpm verify:release` |
 | Firefox source ZIP is bounded and reproducible from lockfile | PASS | source allowlist + README build commands |
-| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `4020756…` |
+| Popup logo uses dedicated vector assets at browser DPI | PASS | packaged OFF/ON SVG + Chromium UX E2E |
+| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `daa97ad…` |
 | No fixture/test API, localhost, source maps, keys, remote code or absolute | PASS | `pnpm verify:release`; S06 artifact review |
 | Clean-profile install and manual first activation | PASS | `pnpm test:release-lifecycle` |
 | Forced update/disable boundary | PASS with limitation | effect may remain immediately; page reload returns zero effect |

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "status": "local-release-candidate-owner-blocked",
   "prepared": "2026-09-13",
-  "buildCommit": "4020756bdabf77cd0e88632323f2902c4c9b50ba",
+  "buildCommit": "daa97adf65187ab21be2189228afeb001ced35ee",
   "environment": {
     "os": "macOS arm64",
     "node": "24.13.0",
@@ -18,26 +18,26 @@
     {
       "target": "chrome-mv3",
       "path": ".output/antimirror-1.0.0-chrome.zip",
-      "bytes": 33798,
-      "sha256": "79b7cdcaafd4cefd70fff3a738e917063c4356ce4209dee6fe5eae15b793341d"
+      "bytes": 34471,
+      "sha256": "960a516fbdea93198679025fc46c37733f01e937b4b03bae7afc6cb652378771"
     },
     {
       "target": "firefox-mv3",
       "path": ".output/antimirror-1.0.0-firefox.zip",
-      "bytes": 33790,
-      "sha256": "94d6fbcb792bb12245081d7b5eab1a062f7f01b6d30783baf06c3a518e75aa97"
+      "bytes": 34463,
+      "sha256": "adb482bdf7c277b9433478467e73584dbccacc5e1d7da95f961d5194ce9d9947"
     },
     {
       "target": "firefox-sources",
       "path": ".output/antimirror-1.0.0-sources.zip",
-      "bytes": 86208,
-      "sha256": "5e6c67e0a06e176c1d90a16c9631c8724e23a83ca7cfc3b376d7c4b73fe0c31d"
+      "bytes": 86908,
+      "sha256": "4b4caa4dcb6eeb3e825607ed620f9f25fab9bffd2f39a784683f2741ad69ec4c"
     }
   ],
   "verification": {
     "repeatedBuildHashesMatch": true,
-    "runtimeFilesPerTarget": 20,
-    "sourceFiles": 42,
+    "runtimeFilesPerTarget": 22,
+    "sourceFiles": 44,
     "manifestAtArchiveRoot": true,
     "sourceAllowlist": true,
     "popupLocales": ["en", "ru"],

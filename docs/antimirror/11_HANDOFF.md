@@ -3,7 +3,7 @@
 ## Где остановились · 2026-09-13
 
 Все слайсы S00–S08 завершены. S08 implementation: `faf38aa`; документация, входящая в
-Firefox source archive: `4020756bdabf77cd0e88632323f2902c4c9b50ba`. Полные результаты:
+Firefox source archive: `daa97adf65187ab21be2189228afeb001ced35ee`. Полные результаты:
 [S08 evidence](evidence/S08-2026-09-13.md),
 [release checklist](../../verification/RELEASE_CHECKLIST.md) и корневой `PACK_MANIFEST.json`.
 
@@ -13,7 +13,7 @@ Firefox source archive: `4020756bdabf77cd0e88632323f2902c4c9b50ba`. Полные
 - `.output/antimirror-1.0.0-firefox.zip`
 - `.output/antimirror-1.0.0-sources.zip`
 
-Артефакты gitignored и дважды собраны byte-identical из `4020756…`. `verify:release` проверил
+Артефакты gitignored и дважды собраны byte-identical из `daa97ad…`. `verify:release` проверил
 root manifests, runtime/source allowlists и отсутствие test/dev markers. Не пересобирать после
 изменения README/package/config без обновления hashes/evidence.
 
@@ -28,6 +28,8 @@ Brand SVG и генератор создают store icon и различимы�
 localized 1280×800 screenshots и готовый к hosting `privacy.html`.
 После проверки toolbar screenshot OFF/ON artwork увеличен с 96×96 до 124×124 внутри исходного
 128 canvas; при 16 px это примерно 15.5 px вместо 12 px. Store brand padding не менялся.
+Popup не масштабирует 32 px raster на Retina: отдельные `popup-off.svg`/`popup-on.svg` остаются
+резкими при 34 CSS px и любом device pixel ratio.
 
 ## Проверки
 

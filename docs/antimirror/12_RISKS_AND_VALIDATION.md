@@ -41,3 +41,5 @@ fingerprint раскрывается как website content/browsing activity; F
 сбора и передачи наружу. Privacy HTML подготовлен, но его публичный URL ещё не размещён.
 Toolbar screenshot выявил лишнее store-padding у state icon; OFF/ON canvas occupancy увеличен с
 75% до 97% и повторно проверен на 16/128 px и в обеих MV3 builds.
+Retina popup screenshot отдельно выявил масштабирование 32 px PNG до 34 CSS px; dedicated SVG
+устранил raster blur и прошёл Chromium production UX E2E.
