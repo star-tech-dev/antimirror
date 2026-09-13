@@ -1,5 +1,5 @@
 import { chromium } from '@playwright/test';
-import { mkdir, readFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
@@ -18,6 +18,7 @@ try {
   for (const name of iconNames) {
     const svg = await readFile(path.join('brand/source', `${name}.svg`), 'utf8');
     for (const size of iconSizes) await renderSvg(svg, size, size, path.join('public/icons', `${name}-${size}.png`));
+    if (name !== 'brand') await copyFile(path.join('brand/source', `${name}.svg`), path.join('public/icons', `popup-${name}.svg`));
   }
 
   await mkdir('store-assets', { recursive: true });

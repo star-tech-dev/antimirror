@@ -27,6 +27,7 @@ test('S05 popup, shortcut and renderer compatibility', async ({ baseURL }) => {
     expect(await popup.evaluate('document.documentElement.lang')).toBe('en');
     expect(await popup.evaluate('document.querySelectorAll("button").length')).toBe(1);
     expect(await popup.evaluate('document.querySelectorAll("select").length')).toBe(1);
+    expect(await popup.evaluate('document.querySelector("#mark").getAttribute("src")')).toMatch(/popup-off\.svg$/);
     expect(await popup.evaluate('document.querySelector("#language").getAttribute("title")')).toBe('Popup language');
     expect(await popup.evaluate('document.querySelector("#status").getAttribute("aria-live")')).toBe('polite');
     expect(await popup.evaluate('document.querySelector("#toggle").getAttribute("aria-describedby")')).toBe('shortcut');

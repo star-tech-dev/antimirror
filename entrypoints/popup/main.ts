@@ -68,7 +68,7 @@ function render(next?: TabState): void {
   button.textContent = next.phase === 'on' ? t('turnOff') : busy ? t('cancel') : t('turnOn');
   button.disabled = tabId === undefined;
   button.setAttribute('aria-pressed', String(next.phase === 'on'));
-  mark.src = browser.runtime.getURL(`/icons/${next.phase === 'on' ? 'on' : 'off'}-32.png`);
+  mark.src = browser.runtime.getURL(`/icons/popup-${next.phase === 'on' ? 'on' : 'off'}.svg`);
 }
 
 async function send(type: 'GET_STATE' | 'SET_ENABLED', desired?: boolean): Promise<TabState | undefined> {
