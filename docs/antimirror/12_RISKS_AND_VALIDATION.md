@@ -39,3 +39,5 @@ S08 (2026-09-13): стабильный Firefox ID, support homepage, EN/RU selec
 manifest/unit/Chromium/Firefox native gates. Для Chrome локальная обработка video DOM и URL
 fingerprint раскрывается как website content/browsing activity; Firefox `none` описывает отсутствие
 сбора и передачи наружу. Privacy HTML подготовлен, но его публичный URL ещё не размещён.
+Toolbar screenshot выявил лишнее store-padding у state icon; OFF/ON canvas occupancy увеличен с
+75% до 97% и повторно проверен на 16/128 px и в обеих MV3 builds.

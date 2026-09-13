@@ -30,7 +30,9 @@ S08: версия 1.0.0, Firefox ID `antimirror@star-tech.dev`, homepage/support
 сохраняемый EN/RU selector без activation side effects, новый brand и отдельные OFF/ON icons.
 Подготовлены локализованные listing copy/screenshots, promo tiles, permission/privacy declarations
 и статическая privacy page. 43 unit tests, lint/types, обе builds/manifests, Chromium production
-8/8 и Firefox native UX — PASS. Три ZIP дважды byte-identical из `34afaa2…`. Firefox manual UI
+8/8 и Firefox native UX — PASS. Toolbar follow-up увеличил state artwork с 75% до 97% canvas;
+обе builds/manifests и визуальный 16/128 audit прошли. Три ZIP дважды byte-identical из
+`4020756…`. Firefox manual UI
 остаётся NOT_RUN по принятому пропуску. До submission нужны LICENSE, publisher name, hosting
 privacy page, store accounts и явное поручение на upload.
 
