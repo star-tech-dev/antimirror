@@ -6,7 +6,7 @@ export default defineConfig({
   zip: {
     includeSources: [
       '.node-version', 'README.md', 'package.json', 'pnpm-lock.yaml', 'tsconfig.json',
-      'wxt.config.ts', 'entrypoints/**', 'src/**', 'public/**',
+      'wxt.config.ts', 'entrypoints/**', 'src/**', 'public/**', 'scripts/verify-manifests.mjs',
     ],
     dotSources: true,
   },

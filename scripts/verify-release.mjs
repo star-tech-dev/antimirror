@@ -42,7 +42,8 @@ for (const target of ['chrome', 'firefox']) {
 
 const sourceFiles = entries(artifacts.sources);
 for (const required of ['.node-version', 'README.md', 'package.json', 'pnpm-lock.yaml', 'wxt.config.ts',
-  'entrypoints/background.ts', 'entrypoints/content/index.ts', 'src/shared/protocol.ts']) {
+  'entrypoints/background.ts', 'entrypoints/content/index.ts', 'src/shared/protocol.ts',
+  'scripts/verify-manifests.mjs']) {
   assert.ok(sourceFiles.includes(required), `sources: missing ${required}`);
 }
 assert.ok(sourceFiles.every(name => !forbidden.test(name)), 'sources: forbidden file present');

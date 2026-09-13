@@ -83,6 +83,7 @@ Reviewer воспроизводит Firefox build командами:
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm build:chrome
 pnpm build:firefox
 pnpm verify:manifests
 ```
