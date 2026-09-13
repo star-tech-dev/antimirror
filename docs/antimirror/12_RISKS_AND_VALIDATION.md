@@ -16,6 +16,7 @@
 | Плеер использует media reuse без observable identity | Собственная fixture со сменой кадров same stream | S05 | Документировать ограничение; не заявлять новый фильм распознанным |
 | !important/transition/site WAAPI скрывают effect | CSS-conflict matrix | S05 | Корректный OFF/conflict; совместимость не симулировать |
 | Native controls/captions отражаются иначе | Визуальный smoke | S05 | Честное описание; не менять UA DOM |
+| Автоматический PiP при потере фокуса сбрасывает явно включённую сессию | Production lifecycle events при неизменном video и effect | S09 | PiP events не являются target loss; обычные identity/health guards сохраняются |
 | Нагрузка на mutation-heavy сайте | OFF/ON профиль и 100 циклов | S06 | Отключать discovery, ограничивать очереди/cleanup |
 | Нет доступа к реальному VK/live | Manual user-accessible sample | S07 | Не утверждать live verification; явно оставить релизный gate |
 | Широкие host permissions вызывают review-вопросы | Review фактического manifest + пояснение функций | S07 | Удалить ненужное; optional flow — только отдельное scope decision |
@@ -43,3 +44,7 @@ Toolbar screenshot выявил лишнее store-padding у state icon; OFF/ON
 75% до 97% и повторно проверен на 16/128 px и в обеих MV3 builds.
 Retina popup screenshot отдельно выявил масштабирование 32 px PNG до 34 CSS px; dedicated SVG
 устранил raster blur и прошёл Chromium production UX E2E.
+
+S09 (2026-09-13): production Chromium E2E подтвердил, что enter/leave PiP вместе со сменой
+видимости сохраняют ON и единственный owned effect у того же DOM-video. Само нативное PiP-окно
+визуально не проверялось и не входит в продуктовую гарантию; Firefox manual PiP остаётся `NOT_RUN`.

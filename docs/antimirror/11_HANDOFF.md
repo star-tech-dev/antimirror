@@ -2,9 +2,9 @@
 
 ## Где остановились · 2026-09-13
 
-Все слайсы S00–S08 завершены. S08 implementation: `faf38aa`; документация, входящая в
-Firefox source archive: `daa97adf65187ab21be2189228afeb001ced35ee`. Полные результаты:
-[S08 evidence](evidence/S08-2026-09-13.md),
+Все слайсы S00–S09 завершены. S09 implementation и документация, входящая в Firefox source
+archive: `129921a6012f6d48de6c79cc07980651094f4b4b`. Полные результаты:
+[S09 evidence](evidence/S09-2026-09-13.md),
 [release checklist](../../verification/RELEASE_CHECKLIST.md) и корневой `PACK_MANIFEST.json`.
 
 ## Локальные RC 1.0.0 artifacts
@@ -13,7 +13,7 @@ Firefox source archive: `daa97adf65187ab21be2189228afeb001ced35ee`. Полные
 - `.output/antimirror-1.0.0-firefox.zip`
 - `.output/antimirror-1.0.0-sources.zip`
 
-Артефакты gitignored и дважды собраны byte-identical из `daa97ad…`. `verify:release` проверил
+Артефакты gitignored и дважды собраны byte-identical из `129921a…`. `verify:release` проверил
 root manifests, runtime/source allowlists и отсутствие test/dev markers. Не пересобирать после
 изменения README/package/config без обновления hashes/evidence.
 
@@ -31,11 +31,19 @@ localized 1280×800 screenshots и готовый к hosting `privacy.html`.
 Popup не масштабирует 32 px raster на Retina: отдельные `popup-off.svg`/`popup-on.svg` остаются
 резкими при 34 CSS px и любом device pixel ratio.
 
+## Что добавил S09
+
+Browser PiP больше не сбрасывает ON только из-за `enterpictureinpicture` или смены видимости.
+Тот же подключённый DOM-video сохраняет ownership и mirror-effect после выхода из PiP. Удаление
+video, смена media identity, ended/error, navigation и потеря effect по-прежнему выключают сессию.
+Отражение отдельной нативной PiP-поверхности не гарантируется.
+
 ## Проверки
 
 43 unit tests, lint/types, обе MV3 builds/manifests и Chromium production 8/8 — PASS. Chromium
-проверил EN→RU, persistence после reopen и RU→EN при OFF. Firefox 155 native UX regression с
-новым ID — PASS. Firefox manual UI остаётся NOT_RUN по принятому пользователем пропуску.
+проверил PiP state retention, EN→RU, persistence после reopen и RU→EN при OFF. Firefox 155 native
+UX regression с новым ID ранее прошёл. Firefox manual UI/PiP остаётся NOT_RUN по принятому
+пользователем пропуску.
 
 ## Следующее точное действие владельца
 

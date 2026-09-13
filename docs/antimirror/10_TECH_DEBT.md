@@ -1,6 +1,6 @@
 # 10. Технический долг
 
-Обновлено во время S08, 2026-09-13.
+Обновлено во время S09, 2026-09-13.
 
 | ID | Severity | Конкретная проблема | Evidence | Почему отложено | Исправление / слайс | Статус |
 |---|---|---|---|---|---|---|
@@ -10,8 +10,9 @@
 | TD04 | Medium | Принудительный update/disable может уничтожить content context до cleanup и оставить owned WAAPI effect до reload страницы | S07 clean-profile gate: immediate effects=1, page reload effects=0 для runtime reload и disable | Старый context не получает гарантированного callback; текущий additive backend иначе сохраняет чужие стили и closed-root coverage | Документировать reload; исследовать автоматически снимаемый browser-owned backend только отдельным post-v1 spike | ACCEPTED |
 
 S04 закрыл TD02 реальным natural idle gate; Firefox full recovery пока verification gap.
-S05 проверил runtime CSS priority conflicts, site animation и PiP policy; потеря собственного
-Animation теперь имеет отдельный EFFECT_LOST status. Это не универсальный pixel-test при любом cascade.
+S05 проверил runtime CSS priority conflicts и site animation; S09 изменил PiP policy по прямому
+продуктовому требованию: same-video PiP сохраняет ON. Потеря собственного Animation имеет
+отдельный EFFECT_LOST status. Это не универсальный pixel-test при любом cascade.
 Chrome blob/data frame-tree limitation описан в coverage/evidence как capability boundary,
 не как обещанная поддержка. Firefox popup/site-access manual остаются verification gaps.
 
@@ -28,3 +29,6 @@ S07 добавил TD04 как измеренную платформенную �
 
 S08 не добавил runtime-долга. Popup language preference изолирован от session state и trusted
 activation path; store publishing gates остаются операционными задачами владельца.
+
+S09 не добавил runtime-долга. Визуальное отражение browser-owned PiP surface не гарантируется;
+доказан именно lifecycle state retention для того же DOM-video.

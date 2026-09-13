@@ -5,7 +5,7 @@ are not release claims.
 
 | Gate | Status | Evidence / action |
 |---|---|---|
-| S00–S08 complete; no critical/high defects | PASS | `docs/antimirror/evidence/` through S08 |
+| S00–S09 complete; no critical/high defects | PASS | `docs/antimirror/evidence/` through S09 |
 | Chrome + Firefox production MV3 manifests | PASS | `pnpm verify:manifests` |
 | Branded store icons 16/32/48/128 and distinct OFF/ON shapes | PASS | SVG sources, generated manifests + PNG inspection |
 | EN/RU popup selector persists without activation | PASS | unit + Chromium production E2E |
@@ -15,7 +15,9 @@ are not release claims.
 | Chrome/Firefox runtime ZIP has root manifest and only allowlisted runtime files | PASS | `pnpm verify:release` |
 | Firefox source ZIP is bounded and reproducible from lockfile | PASS | source allowlist + README build commands |
 | Popup logo uses dedicated vector assets at browser DPI | PASS | packaged OFF/ON SVG + Chromium UX E2E |
-| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `daa97ad…` |
+| Same-video PiP enter/leave preserves ON and one mirror effect | PASS | Chromium production lifecycle E2E |
+| Native PiP window visually mirrors content | NOT_RUN / not promised | Browser-owned surface is outside the v1 guarantee |
+| Repeated package build is byte-identical | PASS | three SHA256 values matched across two builds from `129921a…` |
 | No fixture/test API, localhost, source maps, keys, remote code or absolute | PASS | `pnpm verify:release`; S06 artifact review |
 | Clean-profile install and manual first activation | PASS | `pnpm test:release-lifecycle` |
 | Forced update/disable boundary | PASS with limitation | effect may remain immediately; page reload returns zero effect |

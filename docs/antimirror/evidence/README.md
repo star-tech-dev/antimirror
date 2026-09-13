@@ -11,3 +11,4 @@
 | S06 Hardening/performance | [S06-2026-09-13](S06-2026-09-13.md) |
 | S07 Release candidate | [S07-2026-09-13](S07-2026-09-13.md) |
 | S08 Release polish 1.0 | [S08-2026-09-13](S08-2026-09-13.md) |
+| S09 PiP state retention | [S09-2026-09-13](S09-2026-09-13.md) |

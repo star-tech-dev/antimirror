@@ -1,6 +1,6 @@
 # 09. Прогресс
 
-**Последнее обновление:** 2026-09-13. **Текущий этап:** S08 завершён как локальный RC 1.0.0.
+**Последнее обновление:** 2026-09-13. **Текущий этап:** S09 завершён как локальный RC 1.0.0.
 **Следующее действие:** LICENSE/publisher, hosting privacy page и store submission владельцем.
 
 | Слайс | Статус | Evidence | Примечание |
@@ -14,6 +14,7 @@
 | S06 Hardening + performance | DONE | [S06 evidence](evidence/S06-2026-09-13.md) | Exact guards, security/stress automation, restart fix, artifact review |
 | S07 Release candidate | DONE | [S07 evidence](evidence/S07-2026-09-13.md) | Local RC reproducible; public submission BLOCKED владельцем |
 | S08 Release polish 1.0 | DONE | [S08 evidence](evidence/S08-2026-09-13.md) | ID/version/language/brand/listing assets; submission owner-blocked |
+| S09 PiP state retention | DONE | [S09 evidence](evidence/S09-2026-09-13.md) | PiP enter/leave сохраняет ON для того же DOM-video; native surface вне гарантии |
 
 Допустимые статусы: TODO, IN_PROGRESS, BLOCKED, DONE. Ручной NOT_RUN gate не превращает
 слайс автоматически в DONE. В evidence отдельно различать implementation и verification.
@@ -25,6 +26,15 @@ Git status был чист; старого extension runtime, package.json и LI
 Документы, навыки и стенд сохранены; генератор проекта не использовался.
 
 ## Последний завершённый запуск
+
+S09: `enterpictureinpicture` больше не является потерей выбранной цели. Пока тот же `video`
+подключён к DOM, media identity не менялась и owned effect исправен, вход/выход PiP и смена
+видимости сохраняют ON. Chromium production 8/8 подтвердил lifecycle и cleanup; 43 unit tests,
+lint/types, обе builds/manifests и два byte-identical release build — PASS. Отображение transform
+в самом browser-owned PiP окне не обещается и не проверялось. Firefox manual PiP остаётся NOT_RUN
+по принятому пропуску.
+
+## Предыдущий запуск S08
 
 S08: версия 1.0.0, Firefox ID `antimirror@star-tech.dev`, homepage/support `star-tech.dev`,
 сохраняемый EN/RU selector без activation side effects, новый brand и отдельные OFF/ON icons.
